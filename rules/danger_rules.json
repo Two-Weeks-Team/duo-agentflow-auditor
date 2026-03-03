@@ -1,0 +1,79 @@
+[
+  {
+    "category": "destructive-command",
+    "pattern": "rm_rf_root",
+    "regex": "rm\\s+-[rR]f\\s+/(?!\\w)",
+    "risk_modifier": 10,
+    "description": "Recursive force-delete from root filesystem"
+  },
+  {
+    "category": "destructive-command",
+    "pattern": "mkfs_device",
+    "regex": "mkfs\\.\\w+\\s+/dev/",
+    "risk_modifier": 10,
+    "description": "Format a block device"
+  },
+  {
+    "category": "destructive-command",
+    "pattern": "dd_to_disk",
+    "regex": "dd\\s+.*of=/dev/[a-z]",
+    "risk_modifier": 10,
+    "description": "Direct disk write via dd"
+  },
+  {
+    "category": "credential-exfil",
+    "pattern": "curl_post_secret",
+    "regex": "curl\\s+.*(-H\\s+['\"]Authorization|\\$\\{?\\w*(KEY|TOKEN|SECRET|PASS))",
+    "risk_modifier": 15,
+    "description": "HTTP request with credential headers or variables"
+  },
+  {
+    "category": "credential-exfil",
+    "pattern": "wget_with_secret",
+    "regex": "wget\\s+.*\\$\\{?\\w*(KEY|TOKEN|SECRET|PASS)",
+    "risk_modifier": 15,
+    "description": "wget with credential variables"
+  },
+  {
+    "category": "credential-exfil",
+    "pattern": "curl_exfil_file",
+    "regex": "curl\\s+.*-d\\s+@[/~]",
+    "risk_modifier": 15,
+    "description": "curl posting local file contents to remote URL"
+  },
+  {
+    "category": "prompt-injection",
+    "pattern": "ignore_previous",
+    "regex": "[Ii]gnore\\s+(all\\s+)?previous\\s+instructions",
+    "risk_modifier": 5,
+    "description": "Prompt injection: ignore previous instructions"
+  },
+  {
+    "category": "prompt-injection",
+    "pattern": "you_are_now",
+    "regex": "[Yy]ou\\s+are\\s+now\\s+(a\\s+)?\\w+.*no\\s+(restrictions|limits|rules)",
+    "risk_modifier": 5,
+    "description": "Prompt injection: role override with restriction removal"
+  },
+  {
+    "category": "prompt-injection",
+    "pattern": "system_override",
+    "regex": "[Ss]ystem\\s+(override|prompt|instruction).*:",
+    "risk_modifier": 5,
+    "description": "Prompt injection: system-level override attempt"
+  },
+  {
+    "category": "suspicious",
+    "pattern": "base64_pipe_shell",
+    "regex": "base64\\s+(-d|--decode)\\s*\\|\\s*(bash|sh|zsh)",
+    "risk_modifier": 10,
+    "description": "Base64-decoded content piped to shell interpreter"
+  },
+  {
+    "category": "suspicious",
+    "pattern": "wget_pipe_shell",
+    "regex": "(curl|wget)\\s+.*\\|\\s*(bash|sh|sudo\\s+bash)",
+    "risk_modifier": 10,
+    "description": "Remote content piped directly to shell"
+  }
+]

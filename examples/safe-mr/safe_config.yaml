@@ -1,0 +1,16 @@
+name: ai-assistant-config
+version: 1.0
+
+system_prompt: |
+  You are a helpful coding assistant. Follow the project's AGENTS.md guidelines
+  and coding standards. Always validate user input before processing.
+
+settings:
+  api_endpoint: https://api.example.com/v1
+  webhook_url: https://hooks.example.com/notify
+  max_retries: 3
+  timeout_seconds: 30
+
+deploy:
+  pre_deploy: "python -m pytest tests/ -v"
+  post_deploy: "python scripts/health_check.py"

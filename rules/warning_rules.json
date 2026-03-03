@@ -1,0 +1,107 @@
+[
+  {
+    "category": "shell-exec",
+    "pattern": "subprocess_shell_true",
+    "regex": "subprocess\\.(run|call|Popen)\\(.*shell\\s*=\\s*True",
+    "risk_modifier": 10,
+    "description": "subprocess with shell=True enables shell injection"
+  },
+  {
+    "category": "shell-exec",
+    "pattern": "os_system",
+    "regex": "os\\.system\\(",
+    "risk_modifier": 10,
+    "description": "os.system() runs commands through shell"
+  },
+  {
+    "category": "shell-exec",
+    "pattern": "eval_call",
+    "regex": "\\beval\\s*\\(",
+    "risk_modifier": 10,
+    "description": "eval() executes arbitrary code"
+  },
+  {
+    "category": "shell-exec",
+    "pattern": "exec_call",
+    "regex": "\\bexec\\s*\\(",
+    "risk_modifier": 10,
+    "description": "exec() executes arbitrary code strings"
+  },
+  {
+    "category": "shell-exec",
+    "pattern": "child_process_exec",
+    "regex": "child_process\\.exec\\(|require\\(['\"]child_process['\"]\\)\\.exec",
+    "risk_modifier": 10,
+    "description": "Node.js child_process.exec runs through shell"
+  },
+  {
+    "category": "shell-exec",
+    "pattern": "new_function",
+    "regex": "new\\s+Function\\s*\\(",
+    "risk_modifier": 10,
+    "description": "new Function() creates code from strings"
+  },
+  {
+    "category": "network-call",
+    "pattern": "curl_wget_fetch",
+    "regex": "(curl|wget|fetch)\\s+https?://",
+    "risk_modifier": 0,
+    "description": "External network call (may be legitimate)"
+  },
+  {
+    "category": "prompt-injection",
+    "pattern": "do_not_tell",
+    "regex": "[Dd]o\\s+not\\s+tell\\s+(the\\s+)?user",
+    "risk_modifier": 5,
+    "description": "Hidden instruction: conceal information from user"
+  },
+  {
+    "category": "prompt-injection",
+    "pattern": "execute_immediately",
+    "regex": "[Ee]xecute\\s+(immediately|without\\s+(confirmation|asking))",
+    "risk_modifier": 5,
+    "description": "Urgency-based prompt injection"
+  },
+  {
+    "category": "prompt-injection",
+    "pattern": "override_safety",
+    "regex": "[Oo]verride\\s+(all\\s+)?(safety|security)\\s+(measures|restrictions|rules)",
+    "risk_modifier": 5,
+    "description": "Attempt to disable safety measures"
+  },
+  {
+    "category": "insecure-transport",
+    "pattern": "http_url",
+    "regex": "http://(?!localhost|127\\.0\\.0\\.1|\\[::1\\])",
+    "risk_modifier": 0,
+    "description": "Insecure HTTP URL (should use HTTPS)"
+  },
+  {
+    "category": "hardcoded-cred",
+    "pattern": "hardcoded_password",
+    "regex": "(password|passwd|pwd)\\s*[=:]\\s*['\"][^'\"]{4,}['\"]",
+    "risk_modifier": 5,
+    "description": "Hardcoded password in source code"
+  },
+  {
+    "category": "hardcoded-cred",
+    "pattern": "hardcoded_api_key",
+    "regex": "(api[_-]?key|api[_-]?secret|secret[_-]?key|access[_-]?token)\\s*[=:]\\s*['\"][^'\"]{8,}['\"]",
+    "risk_modifier": 5,
+    "description": "Hardcoded API key or secret in source code"
+  },
+  {
+    "category": "hardcoded-cred",
+    "pattern": "github_token",
+    "regex": "ghp_[A-Za-z0-9]{36}",
+    "risk_modifier": 10,
+    "description": "GitHub personal access token"
+  },
+  {
+    "category": "hardcoded-cred",
+    "pattern": "openai_key",
+    "regex": "sk-[A-Za-z0-9]{20,}",
+    "risk_modifier": 10,
+    "description": "OpenAI API key pattern"
+  }
+]
