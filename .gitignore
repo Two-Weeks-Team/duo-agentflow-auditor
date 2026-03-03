@@ -1,0 +1,42 @@
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# Runtime
+.agentflow-auditor/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.env
+.venv/
+venv/
+
+# Node
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Reports (generated)
+report.json
+audit-report.json
+audit-summary.md
+
+# Screenshots (added during Phase 4)
+screenshots/
