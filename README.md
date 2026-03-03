@@ -186,10 +186,12 @@ risk_modifier:      per-rule adjustment (0-15)
 git clone https://github.com/Two-Weeks-Team/duo-agentflow-auditor.git
 cd duo-agentflow-auditor
 
-# Add GitLab remote
+# Add GitLab remote and push
 git remote add gitlab https://gitlab.com/gitlab-ai-hackathon/<namespace>/duo-agentflow-auditor.git
 git push gitlab main
 ```
+
+> 📖 Full mirroring guide (3 methods, CI setup, sync strategies): [`docs/GITLAB_MIRROR_GUIDE.md`](docs/GITLAB_MIRROR_GUIDE.md)
 
 ### 2. Create Agents
 
@@ -300,7 +302,8 @@ duo-agentflow-auditor/
 │   ├── SETUP_GUIDE.md               # Step-by-step setup (7 steps)
 │   ├── EXECUTION_PLAN.md            # 6-phase implementation plan (~35 tasks)
 │   ├── WOW_MOMENTS.md               # Visual impact & demo choreography
-│   └── DEVPOST_SUBMISSION.md        # Copy-paste Devpost form text
+│   ├── DEVPOST_SUBMISSION.md        # Copy-paste Devpost form text
+│   └── GITLAB_MIRROR_GUIDE.md       # GitHub → GitLab mirroring (3 methods)
 │
 ├── references/                      # Research & reference materials
 │   ├── hackathon/                   # Rules, resources, overview
@@ -340,6 +343,7 @@ duo-agentflow-auditor/
 | [`docs/WOW_MOMENTS.md`](docs/WOW_MOMENTS.md) | Visual impact design & demo choreography |
 | [`docs/DEVPOST_SUBMISSION.md`](docs/DEVPOST_SUBMISSION.md) | Copy-paste submission form text |
 | [`AGENTS.md`](AGENTS.md) | Project-level scanning customization |
+| [`docs/GITLAB_MIRROR_GUIDE.md`](docs/GITLAB_MIRROR_GUIDE.md) | GitHub → GitLab mirroring (3 methods) |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to contribute |
 
 ---

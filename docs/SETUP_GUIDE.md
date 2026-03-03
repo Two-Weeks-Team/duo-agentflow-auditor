@@ -21,18 +21,27 @@ Step-by-step instructions to deploy and run the AgentFlow Auditor on GitLab.
 5. Check "Initialize repository with a README"
 6. Click **Create project**
 
-## Step 2: Push This Repository
+## Step 2: Mirror GitHub → GitLab
+
+The source code lives on GitHub. Mirror it to your GitLab hackathon project.
+
+> 📖 **Full mirroring guide with 3 methods**: See [`docs/GITLAB_MIRROR_GUIDE.md`](GITLAB_MIRROR_GUIDE.md)
+
+**Quick method (recommended):**
 
 ```bash
-git clone https://gitlab.com/gitlab-ai-hackathon/YOUR_NAMESPACE/duo-agentflow-auditor.git
+# Clone from GitHub
+git clone https://github.com/Two-Weeks-Team/duo-agentflow-auditor.git
 cd duo-agentflow-auditor
 
-# Copy all files from this repository into the cloned directory
-# Then:
-git add -A
-git commit -m "feat: initial AgentFlow Auditor setup"
-git push origin main
+# Add GitLab as second remote
+git remote add gitlab https://gitlab.com/gitlab-ai-hackathon/YOUR_NAMESPACE/duo-agentflow-auditor.git
+
+# Push to GitLab
+git push gitlab main
 ```
+
+> ⚠️ When creating the GitLab project, **uncheck** "Initialize repository with a README" to avoid conflicts.
 
 ## Step 3: Create the Agents (4 agents)
 
