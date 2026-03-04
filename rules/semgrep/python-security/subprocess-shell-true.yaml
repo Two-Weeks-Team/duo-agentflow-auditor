@@ -1,0 +1,16 @@
+rules:
+  - id: python-security.subprocess-shell-true
+    message: subprocess called with shell=True. Use shell=False with argument list.
+    severity: WARNING
+    languages:
+      - python
+    metadata:
+      technology:
+        - python
+      category: security
+      confidence: high
+      fix: Set shell=False and pass command as a list, for example subprocess.run(["cmd", "arg"], shell=False).
+    pattern-either:
+      - pattern: subprocess.run(..., shell=True, ...)
+      - pattern: subprocess.call(..., shell=True, ...)
+      - pattern: subprocess.Popen(..., shell=True, ...)

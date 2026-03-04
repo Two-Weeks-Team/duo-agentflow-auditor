@@ -1,0 +1,50 @@
+rules:
+  - id: ai-security.unsafe-deserialization-ml
+    message: Unsafe deserialization of ML model. Use safetensors or verify model source.
+    severity: WARNING
+    languages:
+      - python
+    metadata:
+      technology:
+        - ai
+        - ml
+      category: security
+      confidence: medium
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $SRC = request.args[$KEY]
+              ...
+              pickle.load($SRC)
+          - pattern: |
+              $SRC = request.form[$KEY]
+              ...
+              pickle.load($SRC)
+          - pattern: |
+              $SRC = input(...)
+              ...
+              pickle.load($SRC)
+          - pattern: |
+              $SRC = request.args[$KEY]
+              ...
+              torch.load($SRC)
+          - pattern: |
+              $SRC = request.form[$KEY]
+              ...
+              torch.load($SRC)
+          - pattern: |
+              $SRC = input(...)
+              ...
+              torch.load($SRC)
+          - pattern: |
+              $SRC = request.args[$KEY]
+              ...
+              tensorflow.keras.models.load_model($SRC)
+          - pattern: |
+              $SRC = request.form[$KEY]
+              ...
+              tensorflow.keras.models.load_model($SRC)
+          - pattern: |
+              $SRC = input(...)
+              ...
+              tensorflow.keras.models.load_model($SRC)

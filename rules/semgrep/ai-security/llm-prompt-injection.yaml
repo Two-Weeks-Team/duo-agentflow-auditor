@@ -1,0 +1,38 @@
+rules:
+  - id: ai-security.llm-prompt-injection
+    message: User input flows directly into LLM API call without sanitization. Risk of prompt injection.
+    severity: WARNING
+    languages:
+      - python
+    metadata:
+      technology:
+        - ai
+        - llm
+      category: security
+      confidence: medium
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $INPUT = request.form[$KEY]
+              ...
+              openai.ChatCompletion.create(..., messages=[..., {"content": $INPUT}, ...], ...)
+          - pattern: |
+              $INPUT = request.args[$KEY]
+              ...
+              openai.ChatCompletion.create(..., messages=[..., {"content": $INPUT}, ...], ...)
+          - pattern: |
+              $INPUT = input(...)
+              ...
+              openai.ChatCompletion.create(..., messages=[..., {"content": $INPUT}, ...], ...)
+          - pattern: |
+              $PROMPT = request.form[$KEY]
+              ...
+              anthropic.completions.create(..., prompt=$PROMPT, ...)
+          - pattern: |
+              $PROMPT = request.args[$KEY]
+              ...
+              anthropic.completions.create(..., prompt=$PROMPT, ...)
+          - pattern: |
+              $PROMPT = input(...)
+              ...
+              anthropic.completions.create(..., prompt=$PROMPT, ...)

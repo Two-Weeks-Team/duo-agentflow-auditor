@@ -1,0 +1,15 @@
+rules:
+  - id: python-security.dangerous-os-system
+    message: os.system/popen is deprecated for security. Use subprocess.run() with shell=False.
+    severity: WARNING
+    languages:
+      - python
+    metadata:
+      technology:
+        - python
+      category: security
+      confidence: high
+      fix: Replace os.system/os.popen with subprocess.run(["cmd", "arg"], shell=False).
+    pattern-either:
+      - pattern: os.system(...)
+      - pattern: os.popen(...)

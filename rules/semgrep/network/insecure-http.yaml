@@ -1,0 +1,22 @@
+rules:
+  - id: network.insecure-http
+    message: Insecure HTTP URL detected. Use HTTPS instead.
+    severity: INFO
+    languages:
+      - python
+      - javascript
+      - typescript
+    metadata:
+      technology:
+        - network
+      category: security
+      confidence: medium
+    patterns:
+      - pattern-regex: (?i)http://[^\s"']+
+      - pattern-not-regex: (?i)http://localhost
+      - pattern-not-regex: (?i)http://127\.0\.0\.1
+      - pattern-not-regex: (?i)http://www\.w3\.org
+      - pattern-not-regex: (?i)http://schemas\.xmlsoap\.org
+    fix-regex:
+      regex: http://
+      replacement: https://

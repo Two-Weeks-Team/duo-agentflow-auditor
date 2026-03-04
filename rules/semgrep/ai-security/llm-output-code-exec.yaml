@@ -1,0 +1,50 @@
+rules:
+  - id: ai-security.llm-output-code-exec
+    message: LLM output is passed to code execution function. Critical risk of arbitrary code execution.
+    severity: ERROR
+    languages:
+      - python
+    metadata:
+      technology:
+        - ai
+        - llm
+      category: security
+      confidence: high
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $OUT = openai.ChatCompletion.create(...)
+              ...
+              exec($OUT)
+          - pattern: |
+              $OUT = openai.ChatCompletion.create(...)
+              ...
+              eval($OUT)
+          - pattern: |
+              $OUT = openai.ChatCompletion.create(...)
+              ...
+              compile($OUT, ..., ...)
+          - pattern: |
+              $OUT = openai.ChatCompletion.create(...)
+              ...
+              os.system($OUT)
+          - pattern: |
+              $OUT = openai.ChatCompletion.create(...)
+              ...
+              subprocess.run($OUT, ..., shell=True, ...)
+          - pattern: |
+              $OUT = anthropic.completions.create(...)
+              ...
+              exec($OUT)
+          - pattern: |
+              $OUT = anthropic.completions.create(...)
+              ...
+              eval($OUT)
+          - pattern: |
+              $OUT = anthropic.completions.create(...)
+              ...
+              os.system($OUT)
+          - pattern: |
+              $OUT = anthropic.completions.create(...)
+              ...
+              subprocess.Popen($OUT, ..., shell=True, ...)
