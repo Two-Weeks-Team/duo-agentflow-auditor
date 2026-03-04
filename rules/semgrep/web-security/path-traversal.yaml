@@ -1,0 +1,46 @@
+rules:
+  - id: web-security.path-traversal
+    message: >-
+      User-controlled input used in file path operation. AI-generated code often
+      passes request parameters directly to open() or os.path.join() without
+      validating against directory traversal (../). Use os.path.realpath() and
+      verify the resolved path is within an allowed base directory.
+    severity: ERROR
+    languages:
+      - python
+    metadata:
+      technology:
+        - web
+        - filesystem
+      category: security
+      confidence: medium
+      cwe: "CWE-22"
+      fix: >-
+        Validate with: resolved = os.path.realpath(path);
+        assert resolved.startswith(ALLOWED_BASE_DIR)
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $PATH = request.$W[$KEY]
+              ...
+              open($PATH, ...)
+          - pattern: |
+              $PATH = request.$W.get($KEY)
+              ...
+              open($PATH, ...)
+          - pattern: |
+              $PATH = request.$W[$KEY]
+              ...
+              open(os.path.join(..., $PATH), ...)
+          - pattern: |
+              $PATH = request.$W.get($KEY)
+              ...
+              open(os.path.join(..., $PATH), ...)
+          - pattern: |
+              $PATH = request.$W[$KEY]
+              ...
+              open(f"...{$PATH}...", ...)
+          - pattern: |
+              $PATH = request.$W.get($KEY)
+              ...
+              open(f"...{$PATH}...", ...)

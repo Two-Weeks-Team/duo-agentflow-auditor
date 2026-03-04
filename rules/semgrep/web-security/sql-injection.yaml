@@ -1,0 +1,29 @@
+rules:
+  - id: web-security.sql-injection
+    message: >-
+      SQL query built from string formatting or concatenation. AI-generated code
+      frequently uses f-strings or .format() in SQL queries instead of parameterized
+      queries. Use cursor.execute("SELECT ... WHERE id = %s", (user_id,)) instead.
+    severity: ERROR
+    languages:
+      - python
+    metadata:
+      technology:
+        - web
+        - database
+      category: security
+      confidence: high
+      cwe: "CWE-89"
+      fix: Use parameterized queries — cursor.execute("... WHERE id = %s", (value,))
+    patterns:
+      - pattern-either:
+          - pattern: $CURSOR.execute(f"...", ...)
+          - pattern: $CURSOR.execute("...".format(...), ...)
+          - pattern: $CURSOR.execute("..." % (...), ...)
+          - pattern: $CURSOR.execute("..." + $VAR, ...)
+          - pattern: $SESSION.execute(f"...", ...)
+          - pattern: $SESSION.execute("...".format(...), ...)
+          - pattern: $DB.execute(f"...", ...)
+          - pattern: $DB.execute("...".format(...), ...)
+          - pattern: $MODEL.objects.raw(f"...", ...)
+          - pattern: $MODEL.objects.raw("...".format(...), ...)

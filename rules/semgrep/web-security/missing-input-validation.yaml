@@ -1,0 +1,42 @@
+rules:
+  - id: web-security.missing-input-validation
+    message: >-
+      Request data accessed and used without validation or schema check. AI-generated
+      API code often processes request.json or request.form data directly without
+      validation. Use Pydantic models (FastAPI), WTForms (Flask), or Django Forms
+      for automatic validation and sanitization.
+    severity: WARNING
+    languages:
+      - python
+    metadata:
+      technology:
+        - web
+        - api
+      category: security
+      confidence: medium
+      cwe: "CWE-20"
+      fix: Use Pydantic BaseModel, WTForms, or Django Forms for input validation.
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $DATA = request.get_json()
+              ...
+              $DB.execute(..., $DATA[$KEY], ...)
+          - pattern: |
+              $DATA = request.get_json()
+              ...
+              $DB.execute(..., $DATA.get($KEY), ...)
+          - pattern: |
+              $DATA = request.json
+              ...
+              $CURSOR.execute(..., $DATA[$KEY], ...)
+          - pattern: |
+              $DATA = request.json
+              ...
+              $MODEL.objects.create(**$DATA)
+          - pattern: |
+              $DATA = request.get_json()
+              ...
+              $MODEL.objects.create(**$DATA)
+          - pattern: $MODEL.objects.create(**request.json)
+          - pattern: $MODEL.objects.create(**request.get_json())

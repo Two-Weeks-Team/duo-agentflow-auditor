@@ -1,0 +1,52 @@
+rules:
+  - id: web-security.ssrf-request-forgery
+    message: >-
+      User-controlled URL passed to HTTP request function. AI-generated code often
+      allows arbitrary URLs in requests calls, enabling Server-Side Request Forgery
+      (SSRF). Validate URLs against an allowlist and reject private IP ranges
+      (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.0/8).
+    severity: ERROR
+    languages:
+      - python
+    metadata:
+      technology:
+        - web
+        - network
+      category: security
+      confidence: medium
+      cwe: "CWE-918"
+      fix: Validate user URLs against an allowlist before making requests.
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $URL = request.$W[$KEY]
+              ...
+              requests.get($URL, ...)
+          - pattern: |
+              $URL = request.$W.get($KEY)
+              ...
+              requests.get($URL, ...)
+          - pattern: |
+              $URL = request.$W[$KEY]
+              ...
+              requests.post($URL, ...)
+          - pattern: |
+              $URL = request.$W.get($KEY)
+              ...
+              requests.post($URL, ...)
+          - pattern: |
+              $URL = request.$W[$KEY]
+              ...
+              urllib.request.urlopen($URL, ...)
+          - pattern: |
+              $URL = request.$W.get($KEY)
+              ...
+              urllib.request.urlopen($URL, ...)
+          - pattern: |
+              $URL = request.$W[$KEY]
+              ...
+              httpx.get($URL, ...)
+          - pattern: |
+              $URL = request.$W.get($KEY)
+              ...
+              httpx.get($URL, ...)

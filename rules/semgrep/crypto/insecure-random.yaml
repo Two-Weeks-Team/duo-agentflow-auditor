@@ -1,0 +1,45 @@
+rules:
+  - id: crypto.insecure-random-python
+    message: >-
+      Non-cryptographic random number generator used in security context. AI-generated
+      code frequently suggests random.randint() or random.choice() for tokens, passwords,
+      or session IDs. Use secrets.token_hex() or secrets.token_urlsafe() instead.
+    severity: WARNING
+    languages:
+      - python
+    metadata:
+      technology:
+        - crypto
+        - python
+      category: security
+      confidence: medium
+      cwe: "CWE-338"
+      fix: Use secrets.token_hex(32) or secrets.token_urlsafe(32) for security tokens.
+    pattern-either:
+      - pattern: random.randint(...)
+      - pattern: random.random()
+      - pattern: random.choice(...)
+      - pattern: random.choices(...)
+      - pattern: random.sample(...)
+      - pattern: random.getrandbits(...)
+
+  - id: crypto.insecure-random-javascript
+    message: >-
+      Math.random() is not cryptographically secure. AI-generated code frequently
+      suggests Math.random() for tokens, passwords, or session IDs. Use
+      crypto.randomBytes() or crypto.randomUUID() instead.
+    severity: WARNING
+    languages:
+      - javascript
+      - typescript
+    metadata:
+      technology:
+        - crypto
+        - javascript
+      category: security
+      confidence: medium
+      cwe: "CWE-338"
+      fix: Use crypto.randomBytes(32).toString('hex') or crypto.randomUUID().
+    pattern-either:
+      - pattern: Math.random()
+      - pattern: crypto.pseudoRandomBytes(...)

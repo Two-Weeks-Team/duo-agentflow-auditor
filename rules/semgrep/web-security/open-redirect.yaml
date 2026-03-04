@@ -1,0 +1,39 @@
+rules:
+  - id: web-security.open-redirect
+    message: >-
+      User-controlled input used in HTTP redirect. AI-generated code often passes
+      request parameters directly to redirect functions, enabling open redirect
+      attacks. Validate redirect URLs against an allowlist of trusted domains or
+      use relative paths only.
+    severity: WARNING
+    languages:
+      - python
+    metadata:
+      technology:
+        - web
+      category: security
+      confidence: medium
+      cwe: "CWE-601"
+      fix: Validate redirect URL is relative or in allowed domain list.
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $URL = request.$W[$KEY]
+              ...
+              redirect($URL)
+          - pattern: |
+              $URL = request.$W.get($KEY)
+              ...
+              redirect($URL)
+          - pattern: |
+              $URL = request.$W[$KEY]
+              ...
+              HttpResponseRedirect($URL)
+          - pattern: |
+              $URL = request.$W.get($KEY)
+              ...
+              HttpResponseRedirect($URL)
+          - pattern: redirect(request.$W[$KEY])
+          - pattern: redirect(request.$W.get($KEY))
+          - pattern: HttpResponseRedirect(request.$W[$KEY])
+          - pattern: HttpResponseRedirect(request.$W.get($KEY))
