@@ -10,7 +10,7 @@ Thank you for your interest in contributing! This project is built for the **Git
 2. **Clone** your fork locally
 3. Create a **feature branch** from `main`
 4. Make your changes
-5. **Push** and open a Pull Request (GitHub) or Merge Request (GitLab)
+5. **Push** and open a Merge Request
 
 ---
 

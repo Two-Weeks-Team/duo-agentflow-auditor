@@ -224,12 +224,8 @@ risk_modifier:      per-rule adjustment (0-15)
 ### 1. Push to GitLab
 
 ```bash
-git clone https://github.com/Two-Weeks-Team/duo-agentflow-auditor.git
+git clone https://gitlab.com/centisgood/duo-agentflow-auditor.git
 cd duo-agentflow-auditor
-
-# Add GitLab remote and push
-git remote add gitlab https://gitlab.com/gitlab-ai-hackathon/<namespace>/duo-agentflow-auditor.git
-git push gitlab main
 ```
 
 > 📖 Full mirroring guide (3 methods, CI setup, sync strategies): [`docs/GITLAB_MIRROR_GUIDE.md`](docs/GITLAB_MIRROR_GUIDE.md)
@@ -462,7 +458,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines.
 2. Create a feature branch (`git checkout -b feature/amazing`)
 3. Commit changes (`git commit -m 'feat: add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing`)
-5. Open a Pull Request (GitHub) or Merge Request (GitLab)
+5. Open a Merge Request
 
 ---
 

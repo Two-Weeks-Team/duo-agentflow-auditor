@@ -30,12 +30,9 @@ The source code lives on GitHub. Mirror it to your GitLab hackathon project.
 **Quick method (recommended):**
 
 ```bash
-# Clone from GitHub
-git clone https://github.com/Two-Weeks-Team/duo-agentflow-auditor.git
+# Clone from GitLab
+git clone https://gitlab.com/centisgood/duo-agentflow-auditor.git
 cd duo-agentflow-auditor
-
-# Add GitLab as second remote
-git remote add gitlab https://gitlab.com/gitlab-ai-hackathon/YOUR_NAMESPACE/duo-agentflow-auditor.git
 
 # Push to GitLab
 git push gitlab main
