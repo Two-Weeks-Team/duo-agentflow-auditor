@@ -58,6 +58,12 @@ AI accelerates code generation, but creates new bottlenecks elsewhere in the SDL
 │                  │ • Create MR  │     │ • Green metrics  │  │
 │                  │   with patch │     │ • Energy report  │  │
 │                  └──────────────┘     └──────────────────┘  │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │  External SAST Agent (CI/CD container)                 │  │
+│  │  bandit + semgrep + custom rules → merge_sast_results  │  │
+│  │  Posts findings as MR note via glab CLI                │  │
+│  └────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -65,10 +71,11 @@ AI accelerates code generation, but creates new bottlenecks elsewhere in the SDL
 
 | Agent | Role | Key Tools | System Prompt Focus |
 |-------|------|-----------|---------------------|
-| **Scan Agent** | Analyze MR diff for security risks | `List Merge Request Diffs`, `Read File`, `Grep`, `Get Repository File` | Pattern matching: shell injection, credential exfil, prompt injection, destructive commands, insecure HTTP, `eval`/`exec` |
-| **Report Agent** | Produce structured findings report | `Create Merge Request Note`, `Create Issue`, `Update Issue` | Risk scoring (0-100), severity grading (SAFE/WARNING/DANGER), actionable vs informational classification |
-| **Fix Agent** | Generate concrete fix suggestions | `Edit File`, `Create Commit`, `Create Merge Request` | Context-aware fix generation: `shell=True` → list-based subprocess, `eval()` → `ast.literal_eval()`, HTTP → HTTPS |
-| **Metrics Agent** | Track risk baseline and drift | `Read File`, `Create File With Contents`, `Get Repository File`, `Gitlab Api Get` | Baseline comparison, delta reporting, energy/token usage tracking (Green Agent) |
+| **Scan Agent** | Analyze MR diff for security risks | `List Merge Request Diffs`, `Read File`, `Grep`, `Get Repository File` | Pattern matching across 26 rules, risk scoring (0-100), AGENTS.md integration, scan optimization |
+| **Report Agent** | Produce structured findings report | `Create Merge Request Note`, `Create Issue`, `Update Issue` | Risk heatmap, severity grading (SAFE/WARNING/DANGER), actionable vs informational classification |
+| **Fix Agent** | Generate confidence-scored patches | `Edit File`, `Create Commit`, `Create Merge Request` | Confidence scoring (HIGH/MEDIUM/LOW), context-aware fixes: `shell=True` → list-based subprocess, `eval()` → `ast.literal_eval()` |
+| **Metrics Agent** | Track risk baseline and drift | `Read File`, `Create File With Contents`, `Get Repository File`, `Gitlab Api Get` | Cross-MR learning, team security posture, baseline drift, energy/carbon tracking (Green Agent) |
+| **SAST Scanner** | External SAST in CI/CD | `bandit`, `semgrep`, `glab` | Runs bandit + semgrep, merges with custom rules via Python script, posts MR note |
 
 ### Trigger → Action Flow
 
@@ -253,13 +260,22 @@ Fix patterns you support:
 - http:// → https:// (verify server supports it)
 - Prompt injection patterns → input sanitization + allowlist validation
 
+Confidence scoring:
+- HIGH: Pattern is deterministic, fix cannot change behavior (http->https, env var extraction)
+- MEDIUM: Fix is correct but caller context matters (shell=True->False, eval->literal_eval)
+- LOW: Fix may change behavior or requires domain knowledge
+
+For HIGH confidence: apply fix directly.
+For MEDIUM confidence: apply fix with inline comment noting the change.
+For LOW confidence: add TODO comment only, do not change code.
+
 Rules:
 - Only fix patterns you are confident about
 - Never introduce new functionality
 - Preserve existing code style and indentation
-- Create fixes on a new branch named "security-fix/{mr_iid}"
+- Create fixes on a new branch named "agentflow-fix/{mr_iid}"
 - Include clear commit messages referencing the finding
-- If a fix would change behavior significantly, add a TODO comment instead
+- In the MR description, list all fixes applied with before/after snippets and confidence level
 ```
 
 **Tools**: `Edit File`, `Create File With Contents`, `Create Commit`, `Create Merge Request`, `Read File`, `Get Merge Request`, `List Merge Request Diffs`
@@ -290,6 +306,20 @@ You are a sustainability and metrics tracking agent. You:
    - If 3+ baselines exist, compute trend (improving/degrading/stable)
    - Highlight new risk categories appearing in the codebase
    - Track fix adoption rate (how many suggested fixes were applied)
+
+4. CROSS-MR LEARNING:
+   - If the same category appears in 3+ consecutive scans, flag as "persistent risk"
+   - Track fix adoption rate per category — identify categories with 0% adoption
+   - If a specific file appears in 3+ scans, flag as "chronic risk file"
+
+5. TEAM SECURITY POSTURE (if 5+ scans):
+   - Total scans performed, total findings across all scans
+   - Average grade distribution (% SAFE / WARNING / DANGER)
+   - Most common and most persistent categories
+   - Trend projection based on extrapolation
+
+6. FIX TRACKING:
+   - Track applied fixes (by Fixer), skipped fixes (LOW confidence), pending review
 
 Output a metrics section to append to the MR comment.
 ```
@@ -470,50 +500,53 @@ Place in repository root for project-specific context:
 
 ```
 duo-agentflow-auditor/
-├── LICENSE                          # MIT License
-├── README.md                        # Setup guide + feature overview
-├── AGENTS.md                        # Agent platform customization
-├── IMPLEMENTATION.md                # This document
-├── CONTRIBUTING.md                  # Contribution guidelines
-├── CHANGELOG.md                     # Version history
+├── agents/
+│   ├── scanner.yml                  # Catalog agent — security scanner
+│   ├── reporter.yml                 # Catalog agent — report generator
+│   ├── fixer.yml                    # Catalog agent — auto-fix patches
+│   ├── metrics.yml                  # Catalog agent — green metrics
+│   ├── scanner.md                   # Detailed prompt documentation
+│   ├── reporter.md                  # Detailed prompt documentation
+│   ├── fixer.md                     # Detailed prompt documentation
+│   └── metrics.md                   # Detailed prompt documentation
+│
+├── flows/
+│   └── security-audit.yml           # Catalog flow — 4-agent pipeline
+│
+├── scripts/
+│   └── merge_sast_results.py        # SAST result merger (bandit + semgrep + custom rules)
 │
 ├── .gitlab/
 │   └── duo/
 │       └── flows/
-│           └── security-audit.yaml  # Custom flow YAML configuration
-│
-├── agents/
-│   ├── scanner.md                   # Scan Agent system prompt + config
-│   ├── reporter.md                  # Report Agent system prompt + config
-│   ├── fixer.md                     # Fix Agent system prompt + config
-│   └── metrics.md                   # Metrics Agent system prompt + config
+│           └── sast-scanner.yaml    # External SAST agent (CI/CD container)
 │
 ├── rules/
-│   ├── danger_rules.json            # Danger detection patterns
-│   └── warning_rules.json           # Warning detection patterns
+│   ├── danger_rules.json            # 11 high-severity detection patterns
+│   └── warning_rules.json           # 15 medium-severity detection patterns
 │
 ├── examples/
-│   ├── vulnerable-mr/               # Example MR with intentional risks
-│   │   ├── unsafe_script.py         # shell=True, eval(), credential leak
-│   │   ├── risky_config.yaml        # Prompt injection patterns
-│   │   └── insecure_fetch.js        # HTTP calls, exec()
-│   └── safe-mr/                     # Example clean MR for contrast
+│   ├── vulnerable-mr/               # Intentionally risky code (demo)
+│   │   ├── unsafe_script.py         # shell=True, eval(), rm -rf, cred leak
+│   │   ├── risky_config.yaml        # Prompt injection, hardcoded secrets
+│   │   └── insecure_fetch.js        # HTTP, exec(), token exposure
+│   └── safe-mr/                     # Secure code for contrast (demo)
 │       ├── safe_script.py
 │       └── safe_config.yaml
 │
-├── tests/
-│   ├── test_scan_patterns.py        # Detection pattern tests
-│   └── fixtures/                    # Test fixture files
-│       ├── benign.md
-│       ├── danger.sh
-│       └── warn.md
-│
 ├── docs/
-│   ├── DEMO_SCRIPT.md               # 3-minute demo video script
-│   ├── ARCHITECTURE.md              # Architecture diagrams
-│   └── SETUP_GUIDE.md               # Step-by-step setup
+│   ├── SETUP_GUIDE.md               # Step-by-step setup
+│   ├── EXECUTION_PLAN.md            # Implementation plan
+│   ├── WOW_MOMENTS.md               # Visual impact & demo choreography
+│   ├── DEVPOST_SUBMISSION.md        # Devpost submission draft
+│   └── GITLAB_MIRROR_GUIDE.md       # GitHub → GitLab mirroring
 │
-└── .gitlab-ci.yml                   # CI — catalog-sync + validation
+├── .gitlab-ci.yml                   # CI — overridden by hackathon central pipeline
+├── AGENTS.md                        # Project-level agent customization
+├── IMPLEMENTATION.md                # This document
+├── CONTRIBUTING.md                  # Contribution guidelines
+├── LICENSE                          # MIT License
+└── README.md                        # Project overview + setup
 ```
 
 ---
