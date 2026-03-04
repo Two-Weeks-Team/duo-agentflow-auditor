@@ -1,0 +1,59 @@
+include:
+  - component: $CI_SERVER_HOST/components/ai-catalog/catalog-sync@0.0.8
+    inputs:
+      group_id: "121124982"
+      gitlab_token: $CATALOG_SYNC_TOKEN
+
+validate-agents:
+  stage: test
+  image: alpine
+  script:
+    - |
+      set -e
+      echo "Validating agent configurations..."
+
+      HAS_ISSUES=false
+
+      for FILE in agents/*.yml; do
+        [ -e "$FILE" ] || continue
+        echo "Checking ${FILE}..."
+
+        if grep -q 'name: "AI Hackathon Agent"' "$FILE"; then
+          echo "  FAIL: Found placeholder name in ${FILE}"
+          HAS_ISSUES=true
+        fi
+        if grep -q 'description: "An agent to..."' "$FILE"; then
+          echo "  FAIL: Found placeholder description in ${FILE}"
+          HAS_ISSUES=true
+        fi
+        if grep -q "I'm a placeholder agent, please change my prompt" "$FILE"; then
+          echo "  FAIL: Found placeholder prompt in ${FILE}"
+          HAS_ISSUES=true
+        fi
+      done
+
+      for FILE in flows/*.yml; do
+        [ -e "$FILE" ] || continue
+        echo "Checking ${FILE}..."
+
+        if grep -q 'name: "AI Hackathon Flow"' "$FILE"; then
+          echo "  FAIL: Found placeholder name in ${FILE}"
+          HAS_ISSUES=true
+        fi
+        if grep -q 'description: "A flow to..."' "$FILE"; then
+          echo "  FAIL: Found placeholder description in ${FILE}"
+          HAS_ISSUES=true
+        fi
+        if grep -q "I'm a placeholder agent, please change my prompt" "$FILE"; then
+          echo "  FAIL: Found placeholder prompt in ${FILE}"
+          HAS_ISSUES=true
+        fi
+      done
+
+      echo ""
+      if [ $HAS_ISSUES = true ]; then
+        echo "FAIL: Placeholder content found, please make the needed changes"
+        exit 1
+      else
+        echo "PASS: No placeholder content found."
+      fi
