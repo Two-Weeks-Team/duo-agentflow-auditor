@@ -71,7 +71,7 @@ AI accelerates code generation, but creates new bottlenecks elsewhere in the SDL
 
 | Agent | Role | Key Tools | System Prompt Focus |
 |-------|------|-----------|---------------------|
-| **Scan Agent** | Analyze MR diff for security risks | `List Merge Request Diffs`, `Read File`, `Grep`, `Get Repository File` | Pattern matching across 34 rules (26 regex + 8 Semgrep), risk scoring (0-100), AGENTS.md integration, scan optimization |
+| **Scan Agent** | Analyze MR diff for security risks | `List Merge Request Diffs`, `Read File`, `Grep`, `Get Repository File` | Pattern matching across 41 rules (26 regex + 15 Semgrep), risk scoring (0-100), AGENTS.md integration, scan optimization |
 | **Report Agent** | Produce structured findings report | `Create Merge Request Note`, `Create Issue`, `Update Issue` | Risk heatmap, severity grading (SAFE/WARNING/DANGER), actionable vs informational classification |
 | **Fix Agent** | Generate confidence-scored patches | `Edit File`, `Create Commit`, `Create Merge Request` | Confidence scoring (HIGH/MEDIUM/LOW), context-aware fixes: `shell=True` → list-based subprocess, `eval()` → `ast.literal_eval()` |
 | **Metrics Agent** | Track risk baseline and drift | `Read File`, `Create File With Contents`, `Get Repository File`, `Gitlab Api Get` | Cross-MR learning, team security posture, baseline drift, energy/carbon tracking (Green Agent) |
@@ -562,9 +562,11 @@ duo-agentflow-auditor/
 ├── rules/
 │   ├── danger_rules.json            # 11 high-severity detection patterns
 │   ├── warning_rules.json           # 15 medium-severity detection patterns
-│   └── semgrep/                     # 8 Semgrep custom rules
+│   └── semgrep/                     # 15 Semgrep custom rules
 │       ├── ai-security/             # LLM prompt injection, output exec, unsafe deser
+│       ├── web-security/            # SQL injection, path traversal, SSRF, open redirect, input validation
 │       ├── python-security/         # eval/exec, subprocess, os.system
+│       ├── crypto/                  # Insecure random (Python + JavaScript)
 │       ├── secrets/                 # Hardcoded credentials
 │       └── network/                 # Insecure HTTP (with autofix)
 │

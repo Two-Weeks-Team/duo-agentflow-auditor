@@ -5,7 +5,7 @@
 ## Configuration
 
 - **Display name**: `AgentFlow Auditor — Scanner`
-- **Description**: AI Code Security scanner — catches risks that traditional SAST misses in AI-assisted codebases: LLM prompt injection, output-to-exec, unsafe deserialization, plus 26 regex and 8 Semgrep rules.
+- **Description**: AI Code Security scanner — catches risks that traditional SAST misses in AI-assisted codebases: LLM prompt injection, output-to-exec, unsafe deserialization, SQL injection, SSRF, path traversal, plus 26 regex and 15 Semgrep rules.
 - **Visibility**: Public
 
 ## System Prompt

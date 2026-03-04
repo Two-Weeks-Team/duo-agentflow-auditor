@@ -31,7 +31,7 @@ Meanwhile, security reviews block MRs for hours. GitLab's 2025 DevSecOps Report:
 
 One `@mention` triggers four specialized agents that scan, report, fix, and track — in 45 seconds:
 
-**Scanner Agent** (10 tools) — Reads MR diffs against 34 detection rules (26 regex + 8 custom Semgrep). Dedicated AI-specific threat patterns: LLM prompt injection, output-to-exec, unsafe ML deserialization. Risk scores 0-100 with SAFE/WARNING/DANGER grading. Integrates with GitLab vulnerability management.
+**Scanner Agent** (10 tools) — Reads MR diffs against 41 detection rules (26 regex + 15 custom Semgrep). Dedicated AI-specific threat patterns: LLM prompt injection, output-to-exec, unsafe ML deserialization, plus web security (SQL injection, SSRF, path traversal, open redirect). Risk scores 0-100 with SAFE/WARNING/DANGER grading. Integrates with GitLab vulnerability management.
 
 **Reporter Agent** (7 tools) — Posts scannable MR comments: grade + heatmap + top 5 findings, readable in 10 seconds. Collapsible details for deep dives. Links vulnerabilities to MRs. Auto-creates issues on DANGER grade.
 
@@ -61,8 +61,8 @@ One `@mention` triggers four specialized agents that scan, report, fix, and trac
 | Metric | Value |
 |--------|-------|
 | Security review time | **7 hours → 45 seconds** |
-| Detection rules | **34** (26 regex + 8 Semgrep) |
-| AI-specific threat patterns | **3** (prompt injection, output-to-exec, unsafe ML deser) |
+| Detection rules | **41** (26 regex + 15 Semgrep) |
+| AI-specific threat patterns | **3** AI + **7** web security (SQLi, SSRF, path traversal, open redirect, insecure random, input validation) |
 | Agent tools | **30+** across 4 agents |
 | Test coverage | **76 pytest tests** passing |
 | Flow routing | **Conditional** — SAFE skips fixer |
@@ -75,7 +75,7 @@ One `@mention` triggers four specialized agents that scan, report, fix, and trac
 | **AI Model** | Anthropic Claude Sonnet |
 | **Triggers** | Mention, Assign, Assign Reviewer |
 | **Agent Tools** | 30+ GitLab built-in tools (incl. vulnerability linking) |
-| **Detection** | 34 rules: 26 regex + 8 custom Semgrep (AI security, secrets, network) |
+| **Detection** | 41 rules: 26 regex + 15 custom Semgrep (AI security, web security, crypto, secrets, network) |
 | **External SAST** | Dockerized bandit + semgrep + Python result merger |
 | **Testing** | 76 pytest tests — scoring, grading, parsing |
 | **Demo** | Automated E2E script (glab CLI) |

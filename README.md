@@ -9,8 +9,8 @@
 [![Platform](https://img.shields.io/badge/Platform-GitLab%20Duo%20Agent-E24329?logo=gitlab&logoColor=white)](https://docs.gitlab.com/user/duo_agent_platform/)
 [![AI Model](https://img.shields.io/badge/AI-Anthropic%20Claude-191919?logo=anthropic&logoColor=white)](https://www.anthropic.com/)
 [![Agents](https://img.shields.io/badge/Agents-4-blue)](#architecture)
-[![Detection Rules](https://img.shields.io/badge/Detection%20Rules-34-red)](#detection-categories)
-[![Semgrep Rules](https://img.shields.io/badge/Semgrep%20Rules-8-orange)](#semgrep-custom-rules)
+[![Detection Rules](https://img.shields.io/badge/Detection%20Rules-41-red)](#detection-categories)
+[![Semgrep Rules](https://img.shields.io/badge/Semgrep%20Rules-15-orange)](#semgrep-custom-rules)
 [![Tests](https://img.shields.io/badge/Tests-76%20passing-brightgreen)](#testing)
 [![Flow Schema](https://img.shields.io/badge/Flow%20Schema-v1-brightgreen)](#technology)
 [![Green Agent](https://img.shields.io/badge/Green%20Agent-Sustainability-228B22)](#green-metrics)
@@ -43,7 +43,7 @@ AI accelerates code generation but creates new security bottlenecks:
 
 ## The Solution
 
-**AgentFlow Auditor** — Four AI agents that catch security risks traditional SAST misses in AI-generated code. 34 detection rules including LLM prompt injection, output-to-exec, and unsafe deserialization. Posts scannable reports, generates fix patches, tracks risk drift. One `@mention` triggers everything.
+**AgentFlow Auditor** — Four AI agents that catch security risks traditional SAST misses in AI-generated code. 41 detection rules including LLM prompt injection, output-to-exec, unsafe deserialization, SQL injection, SSRF, and path traversal. Posts scannable reports, generates fix patches, tracks risk drift. One `@mention` triggers everything.
 
 ---
 
@@ -97,7 +97,7 @@ AI accelerates code generation but creates new security bottlenecks:
 
 | Agent | Role | Tools | Key Capability |
 |:------|:-----|:------|:---------------|
-| **Scanner** | Analyze MR diffs | 10 tools | 34 rules (26 regex + 8 Semgrep), AI-specific threat detection, vulnerability integration |
+| **Scanner** | Analyze MR diffs | 10 tools | 41 rules (26 regex + 15 Semgrep), AI-specific threat detection, vulnerability integration |
 | **Reporter** | Post audit reports | 7 tools | Scannable in 10s (grade + heatmap + top 5), vulnerability linking, auto issue on DANGER |
 | **Fixer** | Generate code fixes | 8 tools | Confidence-scored patches (HIGH/MEDIUM/LOW), auto fix MR creation |
 | **Metrics** | Track risk baseline | 6 tools | Cross-MR learning, team posture, baseline drift, energy/carbon tracking |
@@ -112,7 +112,7 @@ AI accelerates code generation but creates new security bottlenecks:
 <td width="50%">
 
 ### Security Scanning
-- **34 Detection Rules** — 26 regex + 8 Semgrep custom rules
+- **41 Detection Rules** — 26 regex + 15 Semgrep custom rules
 - **8 Risk Categories** — From destructive commands to prompt injection
 - **AI-Specific Detection** — LLM prompt injection, output-to-exec, unsafe deserialization
 - **Risk Scoring** — 0-100 per finding (severity x context x category)
@@ -158,16 +158,23 @@ AI accelerates code generation but creates new security bottlenecks:
 
 ### Semgrep Custom Rules
 
-8 production-grade Semgrep rules for AI-specific and Python security:
+15 production-grade Semgrep rules across 6 categories:
 
 | Rule | Category | Severity | Detection |
 |:-----|:---------|:---------|:----------|
 | `llm-prompt-injection` | AI Security | WARNING | User input flowing into LLM API calls |
 | `llm-output-code-exec` | AI Security | ERROR | LLM output passed to exec/eval |
 | `unsafe-deserialization-ml` | AI Security | WARNING | pickle.load, torch.load on untrusted models |
+| `sql-injection` | Web Security | ERROR | String-formatted SQL queries (f-string, .format, concat) |
+| `path-traversal` | Web Security | ERROR | User input in file path operations (../ traversal) |
+| `ssrf-request-forgery` | Web Security | ERROR | User-controlled URLs in HTTP requests |
+| `open-redirect` | Web Security | WARNING | User input in redirect functions |
+| `missing-input-validation` | Web Security | WARNING | Request data used without schema validation |
 | `dangerous-eval-exec` | Python | WARNING | eval/exec with dynamic content |
 | `subprocess-shell-true` | Python | WARNING | subprocess with shell=True |
 | `dangerous-os-system` | Python | WARNING | os.system/popen (deprecated) |
+| `insecure-random-python` | Crypto | WARNING | random module for security tokens |
+| `insecure-random-javascript` | Crypto | WARNING | Math.random() for security tokens |
 | `hardcoded-credentials` | Secrets | WARNING | Hardcoded passwords, API keys, tokens |
 | `insecure-http` | Network | INFO | HTTP URLs (with autofix to HTTPS) |
 
@@ -346,9 +353,11 @@ duo-agentflow-auditor/
 ├── rules/
 │   ├── danger_rules.json            # 11 high-severity detection patterns
 │   ├── warning_rules.json           # 15 medium-severity detection patterns
-│   └── semgrep/                     # 8 Semgrep custom rules
+│   └── semgrep/                     # 15 Semgrep custom rules
 │       ├── ai-security/             # LLM prompt injection, output exec, unsafe deser
+│       ├── web-security/            # SQL injection, path traversal, SSRF, open redirect, input validation
 │       ├── python-security/         # eval/exec, subprocess, os.system
+│       ├── crypto/                  # Insecure random (Python + JavaScript)
 │       ├── secrets/                 # Hardcoded credentials
 │       └── network/                 # Insecure HTTP (with autofix)
 │
@@ -391,7 +400,7 @@ duo-agentflow-auditor/
 | **Flow Schema** | Flow Registry v1 (`ambient` environment) |
 | **Triggers** | Mention, Assign, Assign Reviewer |
 | **Agent Tools** | 30+ GitLab built-in tools across 4 agents (incl. vulnerability linking) |
-| **Detection** | 34 rules: 26 regex + 8 Semgrep (AI security, secrets, network) |
+| **Detection** | 41 rules: 26 regex + 15 Semgrep (AI security, web security, crypto, secrets, network) |
 | **External SAST** | Dockerized bandit + semgrep pipeline with result merger |
 | **Testing** | 76 pytest tests covering scoring, grading, and parsing |
 | **Output** | Markdown MR comments, GitLab Issues, Fix MRs |
@@ -464,7 +473,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines.
 | Without AgentFlow Auditor | With AgentFlow Auditor |
 |:--------------------------|:----------------------|
 | MR waits 2+ days for review | **45 seconds** to full audit |
-| SAST misses AI-specific risks | **34 rules** incl. 3 AI-specific threats |
+| SAST misses AI-specific risks | **41 rules** incl. 3 AI-specific + 7 web security threats |
 | No fix suggestions | **Confidence-scored patches** (HIGH/MED/LOW) |
 | SAFE scans waste fixer tokens | **Conditional routing** skips fixer |
 | No tracking over time | **Cross-MR learning** + team posture |
