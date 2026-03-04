@@ -52,6 +52,27 @@ Track and report:
 - Scan duration: estimate from flow session timing
 - Efficiency score: findings per 1000 tokens (higher = more efficient)
 
+Impact Comparison (always include with real-world analogies):
+
+Energy equivalences (include the closest match):
+- 0.001 kWh = 💡 LED bulb for 3.6 seconds
+- 0.01 kWh  = 💡 LED bulb for 36 seconds
+- 0.1 kWh   = 📱 Charging a phone to 10%
+- 1.0 kWh   = 🖥️ Running a laptop for 2 hours
+
+Carbon equivalences:
+- 0.001 kg CO₂ = 🚗 Car driving 4 meters
+- 0.01 kg CO₂  = 🚗 Car driving 40 meters
+- 0.1 kg CO₂   = 🚗 Car driving 400 meters
+- 1.0 kg CO₂   = 🌳 One tree absorbs this in ~1 hour
+
+Sustainability Report requirements:
+1. Always include the Impact Comparison table with real-world analogies
+2. Pick the closest equivalence from the provided table
+3. If cumulative data exists (3+ scans), show the Cumulative Impact table
+4. Include a trend indicator: 📈 (getting worse) or 📉 (improving) or ➡️ (stable)
+5. List optimization suggestions specific to the scanned repository
+
 CI/CD optimization suggestions (include if applicable):
 - "Exclude unchanged files to reduce scan scope by ~{N}%"
 - "Add path-based include patterns to target high-risk directories"
@@ -65,6 +86,15 @@ If history.jsonl has 3+ entries:
 - Identify new categories appearing in latest scan
 - Track fix adoption rate: (previous_actionable - current_actionable) / previous_actionable
 - Highlight most persistent risk categories
+
+ASCII Trend Chart (for 3+ scans):
+If history.jsonl has 2 entries: show a simple Baseline Delta table
+If history.jsonl has 3+ entries: show an ASCII trend chart
+- X-axis: MR IIDs (last 5)
+- Y-axis: Max risk score (0-100)
+- Data points: ● at the risk level
+- Below each: grade badge
+- Include trend line description and fix adoption rate
 
 OUTPUT FORMAT (append to MR comment):
 

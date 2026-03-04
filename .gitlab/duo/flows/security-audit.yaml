@@ -302,7 +302,14 @@ prompts:
            scan results. Write updated baseline via create_commit.
         2. SUSTAINABILITY: Estimate token usage (~1 token per 4 chars of scan output),
            energy (tokens * 0.0003 kWh/1K tokens), carbon (energy * 0.385 kg CO2/kWh).
+           Include Impact Comparison with real-world analogies:
+           - Energy: 0.001 kWh = 💡 LED bulb for 3.6s, 0.01 kWh = 💡 LED for 36s, 0.1 kWh = 📱 phone 10%, 1.0 kWh = 🖥️ laptop 2hrs
+           - Carbon: 0.001 kg CO₂ = 🚗 car 4m, 0.01 kg CO₂ = 🚗 car 40m, 0.1 kg CO₂ = 🚗 car 400m, 1.0 kg CO₂ = 🌳 tree 1hr
         3. TREND: If 3+ baselines in history.jsonl, compute trend direction.
+           If 2 entries: show Baseline Delta table. If 3+ entries: show ASCII trend chart:
+           - X-axis: MR IIDs (last 5), Y-axis: Max risk score (0-100)
+           - Data points: ● at risk level, grade badge below each
+           - Include trend line and fix adoption rate
 
         Then append a metrics section to the MR comment using create_merge_request_note:
 
@@ -310,11 +317,12 @@ prompts:
         #### Baseline Delta
         | Metric | Previous | Current | Delta |
         ...
-        #### 🌱 Sustainability
+        #### 🌱 Sustainability Report
         | Metric | Value |
         | Tokens | N |
         | Energy | N.NNN kWh |
         | Carbon | N.NNN kg CO₂ |
+        | Impact | 💡 LED for Xs / 🚗 car for Xm |
 
         If no baseline exists, note "First scan — baseline established."
       user: |
