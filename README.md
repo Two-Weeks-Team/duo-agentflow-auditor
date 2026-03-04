@@ -53,40 +53,46 @@ AI accelerates code generation but creates new security bottlenecks:
   @duo-agentflow-auditor review this MR
         │
         ▼
-┌───────────────────────────────────────────────────┐
-│                                                   │
-│   ┌─────────────┐       ┌──────────────────┐     │
-│   │   Scanner   │──────▶│    Reporter      │     │
-│   │   Agent     │       │    Agent         │     │
-│   │             │       │                  │     │
-│   │ Read diffs  │       │ Grade risk       │     │
-│   │ Match 26    │       │ Format report    │     │
-│   │ rules       │       │ Post MR comment  │     │
-│   │ Score risk  │       │ Create issue     │     │
-│   └─────────────┘       └────────┬─────────┘     │
-│                                  │               │
-│   ┌─────────────┐       ┌────────▼─────────┐     │
-│   │   Metrics   │◀──────│    Fixer         │     │
-│   │   Agent     │       │    Agent         │     │
-│   │             │       │                  │     │
-│   │ Baseline    │       │ Generate patches │     │
-│   │ drift       │       │ Create fix       │     │
-│   │ Green       │       │ branch + MR      │     │
-│   │ metrics     │       │                  │     │
-│   └─────────────┘       └──────────────────┘     │
-│                                                   │
-│            GitLab Duo Agent Platform              │
-└───────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────┐
+│                                                       │
+│   ┌─────────────┐       ┌──────────────────┐         │
+│   │   Scanner   │──────▶│    Reporter      │         │
+│   │   Agent     │       │    Agent         │         │
+│   │             │       │                  │         │
+│   │ Read diffs  │       │ Grade risk       │         │
+│   │ Match 26    │       │ Risk heatmap     │         │
+│   │ rules       │       │ Post MR comment  │         │
+│   │ Score risk  │       │ Create issue     │         │
+│   └─────────────┘       └────────┬─────────┘         │
+│                                  │                   │
+│   ┌─────────────┐       ┌────────▼─────────┐         │
+│   │   Metrics   │◀──────│    Fixer         │         │
+│   │   Agent     │       │    Agent         │         │
+│   │             │       │                  │         │
+│   │ Baseline    │       │ Confidence-scored │         │
+│   │ Cross-MR    │       │ patches          │         │
+│   │ Green       │       │ Fix branch + MR  │         │
+│   │ Posture     │       │                  │         │
+│   └─────────────┘       └──────────────────┘         │
+│                                                       │
+│            GitLab Duo Agent Platform (ambient)        │
+│                                                       │
+│   ┌───────────────────────────────────────────┐       │
+│   │  External SAST Agent (CI/CD container)    │       │
+│   │  bandit + semgrep + custom rules merge    │       │
+│   └───────────────────────────────────────────┘       │
+└───────────────────────────────────────────────────────┘
 ```
 
 ### Agent Roster
 
 | Agent | Role | Tools | Key Capability |
 |:------|:-----|:------|:---------------|
-| **Scanner** | Analyze MR diffs | 8 tools | Pattern matching across 26 rules, risk scoring (0-100) |
-| **Reporter** | Post audit reports | 6 tools | Structured MR comments, auto issue creation on DANGER |
-| **Fixer** | Generate code fixes | 8 tools | Context-aware patches, auto fix MR creation |
-| **Metrics** | Track risk baseline | 5 tools | Baseline drift, trend analysis, energy/carbon tracking |
+| **Scanner** | Analyze MR diffs | 8 tools | Pattern matching across 26 rules, risk scoring (0-100), AGENTS.md integration |
+| **Reporter** | Post audit reports | 6 tools | Risk heatmap, structured MR comments, auto issue creation on DANGER |
+| **Fixer** | Generate code fixes | 8 tools | Confidence-scored patches (HIGH/MEDIUM/LOW), auto fix MR creation |
+| **Metrics** | Track risk baseline | 6 tools | Cross-MR learning, team posture, baseline drift, energy/carbon tracking |
+| **SAST Scanner** | External SAST | CI/CD | Runs bandit + semgrep, merges with custom rules via Python script |
 
 ---
 
@@ -296,6 +302,14 @@ duo-agentflow-auditor/
 │
 ├── flows/
 │   └── security-audit.yml           # Catalog flow — 4-agent pipeline
+│
+├── scripts/
+│   └── merge_sast_results.py        # SAST result merger (bandit + semgrep + custom rules)
+│
+├── .gitlab/
+│   └── duo/
+│       └── flows/
+│           └── sast-scanner.yaml    # External SAST agent (CI/CD container)
 │
 ├── rules/
 │   ├── danger_rules.json            # 11 high-severity detection patterns
