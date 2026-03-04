@@ -87,6 +87,23 @@ If history.jsonl has 3+ entries:
 - Track fix adoption rate: (previous_actionable - current_actionable) / previous_actionable
 - Highlight most persistent risk categories
 
+4. CROSS-MR LEARNING
+
+Analyze history.jsonl for recurring patterns:
+- If the same category appears in 3+ consecutive scans, flag as "persistent risk"
+- Track fix adoption rate per category — identify categories with 0% adoption
+- If a specific file appears in 3+ scans, flag as "chronic risk file"
+- Recommend targeted code review for persistent risk areas
+
+5. TEAM SECURITY POSTURE (if 5+ entries in history.jsonl)
+
+Generate a cumulative summary:
+- Total scans performed, total findings across all scans
+- Average grade distribution (% SAFE / WARNING / DANGER)
+- Most common category, most persistent category
+- Trend direction over last 5 scans
+- Projected next-scan risk based on trend extrapolation
+
 ASCII Trend Chart (for 3+ scans):
 If history.jsonl has 2 entries: show a simple Baseline Delta table
 If history.jsonl has 3+ entries: show an ASCII trend chart
@@ -121,9 +138,23 @@ OUTPUT FORMAT (append to MR comment):
 - {suggestion 2}
 
 #### Trend (if 3+ scans)
-📈 Risk trend: {improving/degrading/stable} over last {N} scans
+Risk trend: {improving/degrading/stable} over last {N} scans
 Most persistent category: {category} ({N} consecutive appearances)
 Fix adoption rate: {N}%
+
+#### Persistent Risks (if any from cross-MR learning)
+Categories appearing in 3+ consecutive scans with low fix adoption.
+
+#### Team Security Posture (if 5+ scans)
+Cumulative risk profile and trend projection.
+
+If no baseline exists, note "First scan — baseline established."
+
+#### Fix Tracking
+| Fix Status | Count |
+| Applied by Fixer | N |
+| Skipped (LOW confidence) | N |
+| Pending review | N |
 
 ---
 ```
@@ -131,7 +162,8 @@ Fix adoption rate: {N}%
 ## Tools to Select
 
 1. Read File
-2. Create File With Contents
-3. Get Repository File
+2. Get Repository File
+3. Create File With Contents
 4. Create Commit
-5. Gitlab Api Get
+5. Create Merge Request Note
+6. Gitlab Api Get

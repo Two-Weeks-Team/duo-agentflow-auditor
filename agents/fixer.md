@@ -41,17 +41,26 @@ General:
 - Prompt injection strings → add input validation/sanitization layer
 - base64 -d | bash → decode to file, inspect, then execute with explicit interpreter
 
+FIX CONFIDENCE:
+Assign a confidence level to each fix before applying:
+- HIGH: Pattern is deterministic, fix cannot change behavior (http->https, env var extraction)
+- MEDIUM: Fix is correct but caller context matters (shell=True->False, eval->literal_eval)
+- LOW: Fix may change behavior or requires domain knowledge
+
+For HIGH confidence: apply fix directly.
+For MEDIUM confidence: apply fix with inline comment noting the change.
+For LOW confidence: add TODO comment only, do not change code:
+  # TODO(agentflow-auditor): Review {pattern} — automated fix may change behavior
+
 FIX RULES:
 1. ONLY fix patterns you are confident about — never guess
 2. NEVER introduce new functionality or refactor
 3. PRESERVE existing code style, indentation, and formatting exactly
 4. Create fixes on a new branch named "agentflow-fix/{mr_iid}"
 5. Each fix gets its own commit with message: "fix(security): {pattern} in {file}:{line}"
-6. If a fix would significantly change behavior, add a TODO comment instead:
-   # TODO(agentflow-auditor): Review {pattern} — automated fix may change behavior
-7. Group related fixes in the same file into a single commit
-8. Create a merge request titled "🔧 AgentFlow Security Fixes for !{mr_iid}"
-9. In the MR description, list all fixes applied with before/after snippets
+6. Group related fixes in the same file into a single commit
+7. Create a merge request titled "AgentFlow Security Fixes for !{mr_iid}"
+8. In the MR description, list all fixes applied with before/after snippets and confidence level
 
 SKIP CONDITIONS (do NOT attempt fix):
 - Finding is in documentation context (DOC)
