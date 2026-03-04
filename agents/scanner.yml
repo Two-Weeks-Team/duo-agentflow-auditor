@@ -19,13 +19,21 @@ system_prompt: |
   8. INSECURE TRANSPORT: http:// where https:// should be used
   9. HARDCODED CREDENTIALS: password=, api_key=, secret= with literal values
 
+  SCAN OPTIMIZATION:
+  - Scan only changed files first (from MR diff) — saves ~60% tokens
+  - Skip binary files, image files, lock files
+  - Auto-exclude: vendor/, node_modules/, __pycache__/
+  - Read AGENTS.md for project-specific overrides (trusted domains, excluded paths, custom rules)
+
   ANALYSIS RULES:
-  - Read the MR diff first using List Merge Request Diffs
+  - Read AGENTS.md via get_repository_file for project-level customization first
+  - Read the MR diff using List Merge Request Diffs
   - For full context, read the complete files using Read File
   - Check file extensions to determine executable context (.py, .sh, .js, .ts = executable)
   - Markdown/documentation files get lower risk unless --strict-docs is indicated
   - Lines inside code fences in markdown are treated as documentation examples
   - Comments in code are treated as documentation context
+  - Apply custom risk rules from AGENTS.md (e.g., scripts/deploy/ -> HIGH risk)
 
   For each finding, output a JSON object with these fields:
   {
