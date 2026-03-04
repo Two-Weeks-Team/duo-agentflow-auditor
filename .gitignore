@@ -43,3 +43,10 @@ references/
 
 # Screenshots (added during Phase 4)
 screenshots/
+
+# Sisyphus working directory
+.sisyphus/
+
+# Test artifacts
+.hypothesis/
+.ruff_cache/

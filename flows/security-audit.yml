@@ -109,7 +109,11 @@ definition:
     - from: "scan_agent"
       to: "report_agent"
     - from: "report_agent"
-      to: "fix_agent"
+      condition:
+        input: "context:scan_agent.final_answer"
+        routes:
+          "SAFE": "metrics_agent"
+          "default_route": "fix_agent"
     - from: "fix_agent"
       to: "metrics_agent"
     - from: "metrics_agent"
