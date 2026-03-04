@@ -22,7 +22,7 @@ AI accelerates code generation, but creates new bottlenecks. GitLab's 2025 DevSe
 
 We built a **multi-agent flow** on the GitLab Duo Agent Platform that automates security reviews end-to-end. One @mention triggers four specialized agents:
 
-1. **Scanner Agent** — Reads MR diffs and matches against 26 detection rules across 8 risk categories. Computes per-finding risk scores (0-100) and assigns a SAFE/WARNING/DANGER grade.
+1. **Scanner Agent** — Reads MR diffs and matches against 34 detection rules (26 regex + 8 Semgrep) across 8 risk categories. Computes per-finding risk scores (0-100) and assigns a SAFE/WARNING/DANGER grade.
 
 2. **Reporter Agent** — Formats findings into a structured MR comment with risk tables, severity badges, and collapsible fix suggestions. Creates issues with `security-risk` labels for DANGER-grade findings.
 
@@ -34,11 +34,13 @@ We built a **multi-agent flow** on the GitLab Duo Agent Platform that automates 
 
 ### What Makes It Different
 
-- **AI-specific detection**: Catches prompt injection, credential exfiltration, and obfuscated execution — patterns that standard SAST tools ignore
-- **Multi-agent orchestration**: Four agents with distinct roles, chained via GitLab's flow registry v1
+- **AI-specific detection**: 8 custom Semgrep rules catch LLM prompt injection, LLM output-to-exec, unsafe ML model deserialization — patterns that standard SAST tools ignore
+- **Conditional flow routing**: SAFE scans skip the Fixer agent entirely, saving tokens and time
+- **Multi-agent orchestration**: Four agents with distinct roles, chained via GitLab's flow registry v1 with conditional routing
 - **Actionable, not noisy**: Risk scoring formula separates real threats from documentation examples
 - **Self-improving**: Cross-MR learning detects persistent risks, tracks fix adoption rates, and projects security posture trends
 - **Confidence-aware fixes**: Fixer agent scores each patch (HIGH/MEDIUM/LOW) — never blindly applies uncertain changes
+- **Production-ready SAST**: Dockerized bandit + semgrep pipeline with 76 pytest tests covering scoring, grading, and parsing
 - **Sustainable by design**: Every scan reports its energy footprint with optimization suggestions
 
 ### Technology
@@ -47,8 +49,10 @@ We built a **multi-agent flow** on the GitLab Duo Agent Platform that automates 
 - **AI Model**: Anthropic Claude Sonnet (default for GitLab agents)
 - **Triggers**: Mention, Assign, Assign Reviewer
 - **Tools**: 27+ GitLab built-in tools (List MR Diffs, Grep, Create Issue, Create Commit, etc.)
-- **External SAST**: bandit + semgrep + custom rules merger (Python)
-- **Configuration**: Custom flow YAML + 4 catalog agents + 1 external agent + AGENTS.md customization
+- **External SAST**: Dockerized bandit + semgrep + 8 custom Semgrep rules + result merger (Python)
+- **Testing**: 76 pytest tests covering scoring formula, grade logic, and SAST parsing
+- **Demo**: Automated E2E demo script (glab CLI)
+- **Configuration**: Custom flow YAML with conditional routing + 4 catalog agents + 1 external agent + AGENTS.md customization
 
 ### Impact
 
@@ -64,11 +68,13 @@ We built a **multi-agent flow** on the GitLab Duo Agent Platform that automates 
 - GitLab Duo Agent Platform
 - Anthropic Claude Sonnet
 - GitLab CI/CD
-- Flow Registry v1 YAML
+- Flow Registry v1 YAML (with conditional routing)
 - AGENTS.md Customization
 - bandit (Python SAST)
-- semgrep (multi-language SAST)
+- semgrep (multi-language SAST) + 8 custom rules
 - Python (SAST result merger)
+- Docker (production SAST container)
+- pytest (76 tests)
 
 ## Try It Out
 
