@@ -26,16 +26,19 @@ We built a **multi-agent flow** on the GitLab Duo Agent Platform that automates 
 
 2. **Reporter Agent** — Formats findings into a structured MR comment with risk tables, severity badges, and collapsible fix suggestions. Creates issues with `security-risk` labels for DANGER-grade findings.
 
-3. **Fixer Agent** — Generates concrete code patches for actionable findings (e.g., `shell=True` → argument lists, `eval()` → `ast.literal_eval()`, HTTP → HTTPS). Creates a fix branch and opens a merge request.
+3. **Fixer Agent** — Generates confidence-scored code patches (HIGH/MEDIUM/LOW) for actionable findings (e.g., `shell=True` → argument lists, `eval()` → `ast.literal_eval()`, HTTP → HTTPS). HIGH-confidence fixes are applied directly; LOW-confidence ones get TODO comments only. Creates a fix branch and opens a merge request.
 
-4. **Metrics Agent** — Tracks risk baselines between scans, computes drift deltas, and reports sustainability metrics including token usage, energy consumption, and carbon footprint estimates (Green Agent).
+4. **Metrics Agent** — Tracks risk baselines between scans, computes drift deltas, performs cross-MR learning (detecting persistent risks across scans), generates team security posture reports, and tracks sustainability metrics including token usage, energy consumption, and carbon footprint estimates (Green Agent).
+
+5. **External SAST Scanner** — Runs bandit and semgrep in a CI/CD container, merges results with custom detection rules via a Python script, and posts unified findings as an MR note. Complements the AI-powered Scanner Agent with deterministic static analysis.
 
 ### What Makes It Different
 
 - **AI-specific detection**: Catches prompt injection, credential exfiltration, and obfuscated execution — patterns that standard SAST tools ignore
 - **Multi-agent orchestration**: Four agents with distinct roles, chained via GitLab's flow registry v1
 - **Actionable, not noisy**: Risk scoring formula separates real threats from documentation examples
-- **Self-improving**: Baseline tracking shows whether your codebase is getting more or less secure
+- **Self-improving**: Cross-MR learning detects persistent risks, tracks fix adoption rates, and projects security posture trends
+- **Confidence-aware fixes**: Fixer agent scores each patch (HIGH/MEDIUM/LOW) — never blindly applies uncertain changes
 - **Sustainable by design**: Every scan reports its energy footprint with optimization suggestions
 
 ### Technology
@@ -43,8 +46,9 @@ We built a **multi-agent flow** on the GitLab Duo Agent Platform that automates 
 - **Platform**: GitLab Duo Agent Platform (Flow Registry v1, ambient environment)
 - **AI Model**: Anthropic Claude Sonnet (default for GitLab agents)
 - **Triggers**: Mention, Assign, Assign Reviewer
-- **Tools**: 20+ GitLab built-in tools (List MR Diffs, Grep, Create Issue, Create Commit, etc.)
-- **Configuration**: Custom flow YAML + 4 custom agents + AGENTS.md customization
+- **Tools**: 27+ GitLab built-in tools (List MR Diffs, Grep, Create Issue, Create Commit, etc.)
+- **External SAST**: bandit + semgrep + custom rules merger (Python)
+- **Configuration**: Custom flow YAML + 4 catalog agents + 1 external agent + AGENTS.md customization
 
 ### Impact
 
@@ -62,6 +66,9 @@ We built a **multi-agent flow** on the GitLab Duo Agent Platform that automates 
 - GitLab CI/CD
 - Flow Registry v1 YAML
 - AGENTS.md Customization
+- bandit (Python SAST)
+- semgrep (multi-language SAST)
+- Python (SAST result merger)
 
 ## Try It Out
 
