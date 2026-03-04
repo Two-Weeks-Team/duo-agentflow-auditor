@@ -1,0 +1,27 @@
+injectGatewayToken: true
+image: python:3.11-slim
+commands:
+  - apt-get update && apt-get install -y --no-install-recommends curl git jq ca-certificates && rm -rf /var/lib/apt/lists/*
+  - curl -sSL "https://github.com/profclems/glab/releases/latest/download/glab_$(dpkg --print-architecture).deb" -o /tmp/glab.deb || curl -sSL "https://github.com/profclems/glab/releases/latest/download/glab_linux_amd64.deb" -o /tmp/glab.deb
+  - dpkg -i /tmp/glab.deb || apt-get update && apt-get install -y -f && rm -rf /var/lib/apt/lists/*
+  - glab config set -g host "${AI_FLOW_GITLAB_URL:-${CI_SERVER_URL#https://}}"
+  - glab auth login --hostname "${AI_FLOW_GITLAB_URL:-${CI_SERVER_URL#https://}}" --token "$AI_FLOW_GITLAB_TOKEN"
+  - pip install --no-cache-dir --quiet bandit semgrep
+  - bandit -r . -f json -o /tmp/bandit-results.json --exit-zero || true
+  - semgrep --config auto --json -o /tmp/semgrep-results.json . 2>/dev/null || true
+  - chmod +x scripts/merge_sast_results.py
+  - ./scripts/merge_sast_results.py /tmp/bandit-results.json /tmp/semgrep-results.json > /tmp/merged-sast-results.json
+  - export ANTHROPIC_BASE_URL="${AI_FLOW_ANTHROPIC_PROXY_URL:-${ANTHROPIC_BASE_URL}}"
+  - export ANTHROPIC_API_KEY="${AI_FLOW_GATEWAY_TOKEN:-${ANTHROPIC_API_KEY}}"
+  - export MR_IID="${AI_FLOW_MERGE_REQUEST_IID:-${CI_MERGE_REQUEST_IID}}"
+  - export PROJECT_PATH="${AI_FLOW_PROJECT_PATH:-${CI_PROJECT_PATH}}"
+  - export CLAUDE_PROMPT="$(python3 -c 'from pathlib import Path; import json; merged=Path("/tmp/merged-sast-results.json").read_text(encoding="utf-8"); print("You are a security reviewer for GitLab Duo Agent Platform. Analyze the merged SAST findings from bandit, semgrep, and custom regex rules. Prioritize actionable issues, explain exploitability, and suggest precise fixes. If findings are false positives, explain why. End with a concise risk verdict. Return markdown suitable for posting as a merge request note.\\n\\nRepository: " + ("'"'"" + __import__("os").environ.get("PROJECT_PATH", "unknown") + ""'"'"") + "\\nMerge Request IID: " + ("'"'"" + __import__("os").environ.get("MR_IID", "unknown") + ""'"'"") + "\\n\\nMerged SAST JSON:\\n" + merged)')"
+  - |
+    curl -sS -X POST "${ANTHROPIC_BASE_URL%/}/v1/messages" \
+      -H "x-api-key: ${ANTHROPIC_API_KEY}" \
+      -H "anthropic-version: 2023-06-01" \
+      -H "content-type: application/json" \
+      -d "$(jq -n --arg prompt "$CLAUDE_PROMPT" '{model:"claude-sonnet-4-20250514",max_tokens:1800,temperature:0.1,messages:[{role:"user",content:$prompt}]}')" \
+      > /tmp/claude-sast-response.json
+  - export MR_NOTE="$(jq -r '.content[]? | select(.type=="text") | .text' /tmp/claude-sast-response.json)"
+  - glab mr note "$MR_IID" --message "### External SAST Agent Report\n\n${MR_NOTE}" --repo "$PROJECT_PATH"
