@@ -9,7 +9,9 @@
 [![Platform](https://img.shields.io/badge/Platform-GitLab%20Duo%20Agent-E24329?logo=gitlab&logoColor=white)](https://docs.gitlab.com/user/duo_agent_platform/)
 [![AI Model](https://img.shields.io/badge/AI-Anthropic%20Claude-191919?logo=anthropic&logoColor=white)](https://www.anthropic.com/)
 [![Agents](https://img.shields.io/badge/Agents-4-blue)](#architecture)
-[![Detection Rules](https://img.shields.io/badge/Detection%20Rules-26-red)](#detection-categories)
+[![Detection Rules](https://img.shields.io/badge/Detection%20Rules-34-red)](#detection-categories)
+[![Semgrep Rules](https://img.shields.io/badge/Semgrep%20Rules-8-orange)](#semgrep-custom-rules)
+[![Tests](https://img.shields.io/badge/Tests-76%20passing-brightgreen)](#testing)
 [![Flow Schema](https://img.shields.io/badge/Flow%20Schema-v1-brightgreen)](#technology)
 [![Green Agent](https://img.shields.io/badge/Green%20Agent-Sustainability-228B22)](#green-metrics)
 [![GitLab AI Hackathon](https://img.shields.io/badge/GitLab%20AI%20Hackathon-2026-FC6D26?logo=gitlab&logoColor=white)](https://gitlab.devpost.com/)
@@ -60,20 +62,26 @@ AI accelerates code generation but creates new security bottlenecks:
 │   │   Agent     │       │    Agent         │         │
 │   │             │       │                  │         │
 │   │ Read diffs  │       │ Grade risk       │         │
-│   │ Match 26    │       │ Risk heatmap     │         │
+│   │ Match 34    │       │ Risk heatmap     │         │
 │   │ rules       │       │ Post MR comment  │         │
 │   │ Score risk  │       │ Create issue     │         │
 │   └─────────────┘       └────────┬─────────┘         │
 │                                  │                   │
-│   ┌─────────────┐       ┌────────▼─────────┐         │
-│   │   Metrics   │◀──────│    Fixer         │         │
-│   │   Agent     │       │    Agent         │         │
-│   │             │       │                  │         │
-│   │ Baseline    │       │ Confidence-scored │         │
-│   │ Cross-MR    │       │ patches          │         │
-│   │ Green       │       │ Fix branch + MR  │         │
-│   │ Posture     │       │                  │         │
-│   └─────────────┘       └──────────────────┘         │
+│                          ┌───────┴────────┐          │
+│                          │  SAFE?         │          │
+│                          │  ├─ Yes ──────────────┐   │
+│                          │  └─ No ───┐   │       │   │
+│                          └───────────┘   │       │   │
+│                                  │       │       │   │
+│   ┌─────────────┐       ┌────────▼───────┘┐      │   │
+│   │   Metrics   │◀──────│    Fixer        │      │   │
+│   │   Agent     │       │    Agent        │      │   │
+│   │             │◀──────────────────────────────┘   │
+│   │ Baseline    │       │ Confidence-scored│         │
+│   │ Cross-MR    │       │ patches         │         │
+│   │ Green       │       │ Fix branch + MR │         │
+│   │ Posture     │       │                 │         │
+│   └─────────────┘       └─────────────────┘         │
 │                                                       │
 │            GitLab Duo Agent Platform (ambient)        │
 │                                                       │
@@ -103,8 +111,9 @@ AI accelerates code generation but creates new security bottlenecks:
 <td width="50%">
 
 ### Security Scanning
-- **26 Detection Rules** — 11 danger + 15 warning
+- **34 Detection Rules** — 26 regex + 8 Semgrep custom rules
 - **8 Risk Categories** — From destructive commands to prompt injection
+- **AI-Specific Detection** — LLM prompt injection, output-to-exec, unsafe deserialization
 - **Risk Scoring** — 0-100 per finding (severity x context x category)
 - **Grade System** — SAFE / WARNING / DANGER
 
@@ -113,6 +122,7 @@ AI accelerates code generation but creates new security bottlenecks:
 
 ### Automation
 - **One-trigger activation** — `@mention` or assign reviewer
+- **Conditional routing** — SAFE scans skip fixer, saving tokens
 - **Structured MR comments** — Risk tables, fix suggestions, collapsible details
 - **Auto-fix generation** — Code patches on a new branch
 - **Issue creation** — Automatic on DANGER grade
@@ -144,6 +154,23 @@ AI accelerates code generation but creates new security bottlenecks:
 ---
 
 ## Detection Categories
+
+### Semgrep Custom Rules
+
+8 production-grade Semgrep rules for AI-specific and Python security:
+
+| Rule | Category | Severity | Detection |
+|:-----|:---------|:---------|:----------|
+| `llm-prompt-injection` | AI Security | WARNING | User input flowing into LLM API calls |
+| `llm-output-code-exec` | AI Security | ERROR | LLM output passed to exec/eval |
+| `unsafe-deserialization-ml` | AI Security | WARNING | pickle.load, torch.load on untrusted models |
+| `dangerous-eval-exec` | Python | WARNING | eval/exec with dynamic content |
+| `subprocess-shell-true` | Python | WARNING | subprocess with shell=True |
+| `dangerous-os-system` | Python | WARNING | os.system/popen (deprecated) |
+| `hardcoded-credentials` | Secrets | WARNING | Hardcoded passwords, API keys, tokens |
+| `insecure-http` | Network | INFO | HTTP URLs (with autofix to HTTPS) |
+
+### Regex Detection Categories
 
 | Category | Severity | Example Patterns |
 |:---------|:---------|:-----------------|
@@ -301,10 +328,14 @@ duo-agentflow-auditor/
 │   └── metrics.md                   # Detailed prompt documentation
 │
 ├── flows/
-│   └── security-audit.yml           # Catalog flow — 4-agent pipeline
+│   └── security-audit.yml           # Catalog flow — conditional routing pipeline
 │
 ├── scripts/
-│   └── merge_sast_results.py        # SAST result merger (bandit + semgrep + custom rules)
+│   ├── merge_sast_results.py        # SAST result merger (bandit + semgrep + custom rules)
+│   └── demo.sh                      # E2E demo automation (glab CLI)
+│
+├── tests/
+│   └── test_merge_sast_results.py   # 76 pytest tests — scoring, grading, parsing
 │
 ├── .gitlab/
 │   └── duo/
@@ -313,7 +344,15 @@ duo-agentflow-auditor/
 │
 ├── rules/
 │   ├── danger_rules.json            # 11 high-severity detection patterns
-│   └── warning_rules.json           # 15 medium-severity detection patterns
+│   ├── warning_rules.json           # 15 medium-severity detection patterns
+│   └── semgrep/                     # 8 Semgrep custom rules
+│       ├── ai-security/             # LLM prompt injection, output exec, unsafe deser
+│       ├── python-security/         # eval/exec, subprocess, os.system
+│       ├── secrets/                 # Hardcoded credentials
+│       └── network/                 # Insecure HTTP (with autofix)
+│
+├── Dockerfile                       # Production SAST container (python:3.11-slim)
+├── requirements.txt                 # bandit + semgrep dependencies
 │
 ├── examples/
 │   ├── vulnerable-mr/               # Intentionally risky code (demo)
@@ -322,7 +361,8 @@ duo-agentflow-auditor/
 │   │   └── insecure_fetch.js        # HTTP, exec(), token exposure
 │   └── safe-mr/                     # Secure code for contrast (demo)
 │       ├── safe_script.py
-│       └── safe_config.yaml
+│       ├── safe_config.yaml
+│       └── safe_script.js           # HTTPS, execFile, env vars
 │
 ├── docs/
 │   ├── SETUP_GUIDE.md               # Step-by-step setup
@@ -350,7 +390,9 @@ duo-agentflow-auditor/
 | **Flow Schema** | Flow Registry v1 (`ambient` environment) |
 | **Triggers** | Mention, Assign, Assign Reviewer |
 | **Agent Tools** | 27 GitLab built-in tools across 4 agents |
-| **Detection** | 26 regex-based rules (11 danger + 15 warning) |
+| **Detection** | 34 rules: 26 regex + 8 Semgrep (AI security, secrets, network) |
+| **External SAST** | Dockerized bandit + semgrep pipeline with result merger |
+| **Testing** | 76 pytest tests covering scoring, grading, and parsing |
 | **Output** | Markdown MR comments, GitLab Issues, Fix MRs |
 
 ---
@@ -367,6 +409,37 @@ duo-agentflow-auditor/
 | [`AGENTS.md`](AGENTS.md) | Project-level scanning customization |
 | [`docs/GITLAB_MIRROR_GUIDE.md`](docs/GITLAB_MIRROR_GUIDE.md) | GitHub → GitLab mirroring (3 methods) |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to contribute |
+
+---
+
+## Testing
+
+```bash
+# Run the full test suite (76 tests)
+python -m pytest tests/ -v
+
+# Run with coverage
+python -m pytest tests/ --cov=scripts --cov-report=term-missing
+```
+
+Tests cover: JSON loading, rule parsing, severity/category normalization, risk scoring formula, grade classification, bandit/semgrep output parsing, finding deduplication, and the CLI entry point.
+
+---
+
+## Demo
+
+```bash
+# Run the E2E demo (requires glab CLI + GitLab remote)
+scripts/demo.sh
+
+# Use a custom remote name
+scripts/demo.sh --gitlab-remote origin
+
+# Clean up demo branches and MRs
+scripts/demo.sh --cleanup
+```
+
+The demo script creates a test MR with vulnerable code, triggers the auditor via `@mention`, and polls for results.
 
 ---
 
@@ -390,7 +463,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines.
 | Without AgentFlow Auditor | With AgentFlow Auditor |
 |:--------------------------|:----------------------|
 | MR waits 2+ days for review | **45 seconds** to full audit |
-| Reviewer misses 3 of 4 risks | **All 26 patterns** checked |
+| Reviewer misses 3 of 4 risks | **All 34 patterns** checked |
 | No fix suggestions | **Auto-generated patches** |
 | No tracking over time | **Baseline drift analysis** |
 | No energy awareness | **Green metrics** per scan |
