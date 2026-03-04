@@ -513,10 +513,7 @@ duo-agentflow-auditor/
 │   ├── ARCHITECTURE.md              # Architecture diagrams
 │   └── SETUP_GUIDE.md               # Step-by-step setup
 │
-└── references/                      # Research and reference materials
-    ├── hackathon/
-    ├── gitlab-docs/
-    └── guides/
+└── .gitlab-ci.yml                   # CI — catalog-sync + validation
 ```
 
 ---

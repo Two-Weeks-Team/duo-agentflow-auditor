@@ -1,3 +1,4 @@
+# Overridden by gitlab-ai-hackathon/security-policies (pipeline_config_strategy: override_project_ci)
 include:
   - component: $CI_SERVER_HOST/components/ai-catalog/catalog-sync@0.0.8
     inputs:

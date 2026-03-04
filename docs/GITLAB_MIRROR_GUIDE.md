@@ -106,7 +106,7 @@ git push gitlab --tags
 # ✅ 파일 목록이 GitHub과 동일
 # ✅ README.md가 제대로 렌더링
 # ✅ LICENSE가 MIT로 표시
-# ✅ .gitlab/duo/flows/ 디렉토리 존재
+# ✅ agents/*.yml, flows/*.yml 존재
 ```
 
 ### 이후 동기화 (필요 시)
@@ -301,17 +301,16 @@ validate-yaml:
   script:
     - python3 -c "
       import yaml, sys;
-      f = open('.gitlab/duo/flows/security-audit.yaml');
+      f = open('flows/security-audit.yml');
       d = yaml.safe_load(f);
-      assert d['version'] == 'v1', 'Invalid schema version';
-      assert 'components' in d, 'Missing components';
-      assert 'routers' in d, 'Missing routers';
-      assert 'flow' in d, 'Missing flow';
-      print(f'✅ Flow YAML valid: {len(d[\"components\"])} components, {len(d[\"routers\"])} routers');
+      assert d.get('definition', {}).get('version') == 'v1', 'Invalid schema version';
+      assert 'components' in d.get('definition', {}), 'Missing components';
+      assert 'routers' in d.get('definition', {}), 'Missing routers';
+      print(f'✅ Flow YAML valid');
       "
   rules:
     - changes:
-        - .gitlab/duo/flows/*.yaml
+        - flows/*.yml
 
 validate-rules:
   stage: validate
@@ -433,7 +432,7 @@ chmod +x scripts/sync.sh
 - [ ] 파일 목록이 GitHub과 100% 동일
 - [ ] README.md 정상 렌더링 (배지 포함)
 - [ ] LICENSE: MIT 표시
-- [ ] `.gitlab/duo/flows/security-audit.yaml` 존재
+- [ ] `agents/*.yml` 및 `flows/security-audit.yml` 존재
 
 ### GitLab 후속 설정 체크
 

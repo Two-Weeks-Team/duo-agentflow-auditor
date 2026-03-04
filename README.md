@@ -193,29 +193,37 @@ git push gitlab main
 
 > 📖 Full mirroring guide (3 methods, CI setup, sync strategies): [`docs/GITLAB_MIRROR_GUIDE.md`](docs/GITLAB_MIRROR_GUIDE.md)
 
-### 2. Create Agents
+### 2. Agents & Flow Publish Automatically
 
-In GitLab UI: **Automate → Agents → New agent**
+The hackathon group enforces a [central CI pipeline](https://gitlab.com/gitlab-ai-hackathon/ci) via [security policy](https://gitlab.com/gitlab-ai-hackathon/security-policies). When you push to GitLab, the `catalog-sync` job **automatically** publishes all `agents/*.yml` and `flows/*.yml` to the AI Catalog — no manual setup or git tags needed.
 
-| # | Agent | Config File | Tools |
-|---|-------|-------------|-------|
-| 1 | Scanner | [`agents/scanner.md`](agents/scanner.md) | 8 tools |
-| 2 | Reporter | [`agents/reporter.md`](agents/reporter.md) | 6 tools |
-| 3 | Fixer | [`agents/fixer.md`](agents/fixer.md) | 8 tools |
-| 4 | Metrics | [`agents/metrics.md`](agents/metrics.md) | 5 tools |
+> Your project's `.gitlab-ci.yml` is overridden by the hackathon's central pipeline. The included `.gitlab-ci.yml` serves as reference only.
 
-### 3. Create Flow
+| # | Agent | Catalog File | Prompt Docs | Tools |
+|---|-------|-------------|-------------|-------|
+| 1 | Scanner | [`agents/scanner.yml`](agents/scanner.yml) | [`agents/scanner.md`](agents/scanner.md) | 8 tools |
+| 2 | Reporter | [`agents/reporter.yml`](agents/reporter.yml) | [`agents/reporter.md`](agents/reporter.md) | 6 tools |
+| 3 | Fixer | [`agents/fixer.yml`](agents/fixer.yml) | [`agents/fixer.md`](agents/fixer.md) | 8 tools |
+| 4 | Metrics | [`agents/metrics.yml`](agents/metrics.yml) | [`agents/metrics.md`](agents/metrics.md) | 5 tools |
 
-**Automate → Flows → New flow** → Paste YAML from [`.gitlab/duo/flows/security-audit.yaml`](.gitlab/duo/flows/security-audit.yaml)
+Flow: [`flows/security-audit.yml`](flows/security-audit.yml) — 4-agent pipeline with Scanner → Reporter → Fixer → Metrics routing.
 
-### 4. Enable Triggers
+<details>
+<summary>Alternative: Manual setup via GitLab UI</summary>
+
+**Agents**: Automate → Agents → New agent → paste system prompt from `.md` files
+
+**Flow**: Automate → Flows → New flow → paste definition from [`flows/security-audit.yml`](flows/security-audit.yml)
+</details>
+
+### 3. Enable Triggers
 
 | Trigger | How |
 |---------|-----|
 | Mention | Comment `@duo-agentflow-auditor` in any MR |
 | Assign reviewer | Assign the service account as MR reviewer |
 
-### 5. Try It
+### 4. Try It
 
 ```bash
 # Create test branch with vulnerable code
@@ -276,14 +284,18 @@ Recommendation: FAIL — do not merge without fixes
 ```
 duo-agentflow-auditor/
 │
-├── .gitlab/duo/flows/
-│   └── security-audit.yaml         # Flow YAML — 4-agent pipeline (v1 schema)
-│
 ├── agents/
-│   ├── scanner.md                   # Scan Agent — system prompt & tool config
-│   ├── reporter.md                  # Report Agent — MR comment formatting
-│   ├── fixer.md                     # Fix Agent — code patch generation
-│   └── metrics.md                   # Metrics Agent — baseline & green metrics
+│   ├── scanner.yml                  # Catalog agent — security scanner
+│   ├── reporter.yml                 # Catalog agent — report generator
+│   ├── fixer.yml                    # Catalog agent — auto-fix patches
+│   ├── metrics.yml                  # Catalog agent — green metrics
+│   ├── scanner.md                   # Detailed prompt documentation
+│   ├── reporter.md                  # Detailed prompt documentation
+│   ├── fixer.md                     # Detailed prompt documentation
+│   └── metrics.md                   # Detailed prompt documentation
+│
+├── flows/
+│   └── security-audit.yml           # Catalog flow — 4-agent pipeline
 │
 ├── rules/
 │   ├── danger_rules.json            # 11 high-severity detection patterns
@@ -299,17 +311,13 @@ duo-agentflow-auditor/
 │       └── safe_config.yaml
 │
 ├── docs/
-│   ├── SETUP_GUIDE.md               # Step-by-step setup (7 steps)
-│   ├── EXECUTION_PLAN.md            # 6-phase implementation plan (~35 tasks)
+│   ├── SETUP_GUIDE.md               # Step-by-step setup
+│   ├── EXECUTION_PLAN.md            # Implementation plan
 │   ├── WOW_MOMENTS.md               # Visual impact & demo choreography
-│   ├── DEVPOST_SUBMISSION.md        # Copy-paste Devpost form text
-│   └── GITLAB_MIRROR_GUIDE.md       # GitHub → GitLab mirroring (3 methods)
+│   ├── DEVPOST_SUBMISSION.md        # Devpost submission draft
+│   └── GITLAB_MIRROR_GUIDE.md       # GitHub → GitLab mirroring
 │
-├── references/                      # Research & reference materials
-│   ├── hackathon/                   # Rules, resources, overview
-│   ├── gitlab-docs/                 # Agents, flows, tools, triggers docs
-│   └── guides/                      # YAML schema, winning strategy, setup
-│
+├── .gitlab-ci.yml                   # CI — catalog-sync + validation
 ├── AGENTS.md                        # Project-level agent customization
 ├── IMPLEMENTATION.md                # Architecture & design document
 ├── CONTRIBUTING.md                  # Contribution guidelines

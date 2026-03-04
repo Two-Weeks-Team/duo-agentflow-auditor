@@ -95,7 +95,7 @@ For each agent, go to **Automate → Agents → New agent** in your GitLab proje
    - **Description**: `Multi-agent security auditing pipeline — scans MR diffs, reports findings, generates fixes, tracks metrics`
    - **Visibility**: Public
 3. Under **Configuration**, select **Flow**
-4. Paste the YAML from `.gitlab/duo/flows/security-audit.yaml`
+4. Paste the flow definition from `flows/security-audit.yml`
 5. Click **Create flow**
 
 ## Step 5: Enable the Flow

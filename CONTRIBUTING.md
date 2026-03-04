@@ -64,7 +64,7 @@ Improvements to agent prompts in `agents/*.md`:
 - Add external dependencies
 - Modify existing test fixtures (add new ones instead)
 - Change the Flow YAML schema version without discussion
-- Touch the `hackathon/` or `references/` directories (historical artifacts)
+- Modify the catalog agent/flow YML schema without discussion
 
 ---
 
