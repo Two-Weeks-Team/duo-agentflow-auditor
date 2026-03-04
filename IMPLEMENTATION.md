@@ -71,7 +71,7 @@ AI accelerates code generation, but creates new bottlenecks elsewhere in the SDL
 
 | Agent | Role | Key Tools | System Prompt Focus |
 |-------|------|-----------|---------------------|
-| **Scan Agent** | Analyze MR diff for security risks | `List Merge Request Diffs`, `Read File`, `Grep`, `Get Repository File` | Pattern matching across 26 rules, risk scoring (0-100), AGENTS.md integration, scan optimization |
+| **Scan Agent** | Analyze MR diff for security risks | `List Merge Request Diffs`, `Read File`, `Grep`, `Get Repository File` | Pattern matching across 34 rules (26 regex + 8 Semgrep), risk scoring (0-100), AGENTS.md integration, scan optimization |
 | **Report Agent** | Produce structured findings report | `Create Merge Request Note`, `Create Issue`, `Update Issue` | Risk heatmap, severity grading (SAFE/WARNING/DANGER), actionable vs informational classification |
 | **Fix Agent** | Generate confidence-scored patches | `Edit File`, `Create Commit`, `Create Merge Request` | Confidence scoring (HIGH/MEDIUM/LOW), context-aware fixes: `shell=True` → list-based subprocess, `eval()` → `ast.literal_eval()` |
 | **Metrics Agent** | Track risk baseline and drift | `Read File`, `Create File With Contents`, `Get Repository File`, `Gitlab Api Get` | Cross-MR learning, team security posture, baseline drift, energy/carbon tracking (Green Agent) |
@@ -95,7 +95,7 @@ AI accelerates code generation, but creates new bottlenecks elsewhere in the SDL
    ├── Posts MR note via Create Merge Request Note
    ├── If DANGER grade → Creates issue via Create Issue
    └── If baseline exists → Computes delta and includes in report
-6. Fix Agent (if actionable findings exist):
+6. Fix Agent (skipped if grade is SAFE — conditional routing):
    ├── Generates context-aware fix suggestions per finding
    ├── Creates commit with fixes on a new branch
    └── Creates MR linking back to original MR
@@ -159,6 +159,36 @@ Where:
 | **DANGER** | max_risk ≥ 90 OR high_risk_findings ≥ 3 |
 | **WARNING** | max_risk ≥ 70 OR high_risk_findings ≥ 1 OR avg_risk ≥ 50 |
 | **SAFE** | No meaningful risk signal |
+
+### Semgrep Custom Rules (8 rules)
+
+Production-grade Semgrep rules in `rules/semgrep/` for AI-specific and Python security:
+
+| Rule ID | Category | Severity | Detection |
+|---------|----------|----------|-----------|
+| `ai-security.llm-prompt-injection` | AI Security | WARNING | User input → LLM API calls (taint-like pattern) |
+| `ai-security.llm-output-code-exec` | AI Security | ERROR | LLM output → exec/eval/compile |
+| `ai-security.unsafe-deserialization-ml` | AI Security | WARNING | pickle.load, torch.load, keras model loading |
+| `python-security.dangerous-eval-exec` | Python | WARNING | eval/exec with dynamic content |
+| `python-security.subprocess-shell-true` | Python | WARNING | subprocess with shell=True |
+| `python-security.dangerous-os-system` | Python | WARNING | os.system/popen (deprecated) |
+| `secrets.hardcoded-credentials` | Secrets | WARNING | Hardcoded passwords, API keys, tokens |
+| `network.insecure-http` | Network | INFO | HTTP URLs (with autofix to HTTPS) |
+
+### Conditional Flow Routing
+
+The flow uses GitLab Flow v1 conditional routing to optimize token usage:
+
+```yaml
+- from: "report_agent"
+  condition:
+    input: "context:scan_agent.final_answer"
+    routes:
+      "SAFE": "metrics_agent"        # Skip fixer — no vulnerabilities
+      "default_route": "fix_agent"   # WARNING/DANGER → fix agent
+```
+
+When the Scanner grades a scan as SAFE, the Fixer agent is bypassed entirely. This saves ~30% of tokens per safe scan.
 
 ---
 
@@ -444,7 +474,11 @@ routers:
   - from: "scan_agent"
     to: "report_agent"
   - from: "report_agent"
-    to: "fix_agent"
+    condition:
+      input: "context:scan_agent.final_answer"
+      routes:
+        "SAFE": "metrics_agent"
+        "default_route": "fix_agent"
   - from: "fix_agent"
     to: "metrics_agent"
   - from: "metrics_agent"
@@ -511,10 +545,14 @@ duo-agentflow-auditor/
 │   └── metrics.md                   # Detailed prompt documentation
 │
 ├── flows/
-│   └── security-audit.yml           # Catalog flow — 4-agent pipeline
+│   └── security-audit.yml           # Catalog flow — conditional routing pipeline
 │
 ├── scripts/
-│   └── merge_sast_results.py        # SAST result merger (bandit + semgrep + custom rules)
+│   ├── merge_sast_results.py        # SAST result merger (bandit + semgrep + custom rules)
+│   └── demo.sh                      # E2E demo automation (glab CLI)
+│
+├── tests/
+│   └── test_merge_sast_results.py   # 76 pytest tests — scoring, grading, parsing
 │
 ├── .gitlab/
 │   └── duo/
@@ -523,7 +561,15 @@ duo-agentflow-auditor/
 │
 ├── rules/
 │   ├── danger_rules.json            # 11 high-severity detection patterns
-│   └── warning_rules.json           # 15 medium-severity detection patterns
+│   ├── warning_rules.json           # 15 medium-severity detection patterns
+│   └── semgrep/                     # 8 Semgrep custom rules
+│       ├── ai-security/             # LLM prompt injection, output exec, unsafe deser
+│       ├── python-security/         # eval/exec, subprocess, os.system
+│       ├── secrets/                 # Hardcoded credentials
+│       └── network/                 # Insecure HTTP (with autofix)
+│
+├── Dockerfile                       # Production SAST container (python:3.11-slim)
+├── requirements.txt                 # bandit + semgrep dependencies
 │
 ├── examples/
 │   ├── vulnerable-mr/               # Intentionally risky code (demo)
@@ -532,7 +578,8 @@ duo-agentflow-auditor/
 │   │   └── insecure_fetch.js        # HTTP, exec(), token exposure
 │   └── safe-mr/                     # Secure code for contrast (demo)
 │       ├── safe_script.py
-│       └── safe_config.yaml
+│       ├── safe_config.yaml
+│       └── safe_script.js           # HTTPS, execFile, env vars
 │
 ├── docs/
 │   ├── SETUP_GUIDE.md               # Step-by-step setup
