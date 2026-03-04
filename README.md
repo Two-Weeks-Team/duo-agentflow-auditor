@@ -2,7 +2,7 @@
 
 # Duo AgentFlow Auditor
 
-**Multi-agent security auditing for AI-assisted codebases**
+**AI Code Security — catching what SAST misses in AI-generated code**
 **Built on the GitLab Duo Agent Platform**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -18,8 +18,8 @@
 
 ---
 
-> AI writes code faster than ever. But security reviews? Still a bottleneck.
-> Teams lose **7 hours per week** to AI-related inefficiencies. We're fixing that.
+> 40-62% of AI-generated code contains security vulnerabilities.
+> Traditional SAST catches CVEs. We catch **what SAST misses** — prompt injection, LLM output execution, unsafe ML deserialization.
 
 [Getting Started](#quick-start) · [Architecture](#architecture) · [Detection Rules](#detection-categories) · [Setup Guide](docs/SETUP_GUIDE.md) · [Implementation](IMPLEMENTATION.md)
 
@@ -36,13 +36,14 @@ AI accelerates code generation but creates new security bottlenecks:
 | Security reviews block MRs for hours or days | **7 hrs/week** lost per team member |
 | AI makes compliance management harder | **70%** of teams report this |
 | Compliance issues discovered after deployment | **76%** of organizations |
-| Traditional SAST tools miss AI-specific risks | Prompt injection, credential exfil, unsafe shell |
+| Traditional SAST tools miss AI-specific risks | Prompt injection, LLM output-to-exec, unsafe ML deser |
+| 40-62% of AI-generated code has vulnerabilities | No existing tool detects AI-specific threat patterns |
 
 <sub>Source: GitLab 2025 Global DevSecOps Report</sub>
 
 ## The Solution
 
-**AgentFlow Auditor** — Four specialized AI agents that automatically audit merge requests, post actionable findings, generate fix patches, and track risk drift over time. Triggered by a single `@mention`.
+**AgentFlow Auditor** — Four AI agents that catch security risks traditional SAST misses in AI-generated code. 34 detection rules including LLM prompt injection, output-to-exec, and unsafe deserialization. Posts scannable reports, generates fix patches, tracks risk drift. One `@mention` triggers everything.
 
 ---
 
@@ -96,8 +97,8 @@ AI accelerates code generation but creates new security bottlenecks:
 
 | Agent | Role | Tools | Key Capability |
 |:------|:-----|:------|:---------------|
-| **Scanner** | Analyze MR diffs | 8 tools | Pattern matching across 26 rules, risk scoring (0-100), AGENTS.md integration |
-| **Reporter** | Post audit reports | 6 tools | Risk heatmap, structured MR comments, auto issue creation on DANGER |
+| **Scanner** | Analyze MR diffs | 10 tools | 34 rules (26 regex + 8 Semgrep), AI-specific threat detection, vulnerability integration |
+| **Reporter** | Post audit reports | 7 tools | Scannable in 10s (grade + heatmap + top 5), vulnerability linking, auto issue on DANGER |
 | **Fixer** | Generate code fixes | 8 tools | Confidence-scored patches (HIGH/MEDIUM/LOW), auto fix MR creation |
 | **Metrics** | Track risk baseline | 6 tools | Cross-MR learning, team posture, baseline drift, energy/carbon tracking |
 | **SAST Scanner** | External SAST | CI/CD | Runs bandit + semgrep, merges with custom rules via Python script |
@@ -389,7 +390,7 @@ duo-agentflow-auditor/
 | **AI Model** | Anthropic Claude Sonnet |
 | **Flow Schema** | Flow Registry v1 (`ambient` environment) |
 | **Triggers** | Mention, Assign, Assign Reviewer |
-| **Agent Tools** | 27 GitLab built-in tools across 4 agents |
+| **Agent Tools** | 30+ GitLab built-in tools across 4 agents (incl. vulnerability linking) |
 | **Detection** | 34 rules: 26 regex + 8 Semgrep (AI security, secrets, network) |
 | **External SAST** | Dockerized bandit + semgrep pipeline with result merger |
 | **Testing** | 76 pytest tests covering scoring, grading, and parsing |
@@ -463,9 +464,10 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines.
 | Without AgentFlow Auditor | With AgentFlow Auditor |
 |:--------------------------|:----------------------|
 | MR waits 2+ days for review | **45 seconds** to full audit |
-| Reviewer misses 3 of 4 risks | **All 34 patterns** checked |
-| No fix suggestions | **Auto-generated patches** |
-| No tracking over time | **Baseline drift analysis** |
+| SAST misses AI-specific risks | **34 rules** incl. 3 AI-specific threats |
+| No fix suggestions | **Confidence-scored patches** (HIGH/MED/LOW) |
+| SAFE scans waste fixer tokens | **Conditional routing** skips fixer |
+| No tracking over time | **Cross-MR learning** + team posture |
 | No energy awareness | **Green metrics** per scan |
 
 </div>
@@ -480,7 +482,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 <div align="center">
 
-**One Trigger. Four Agents. Zero Blind Spots.**
+**One Trigger. Four Agents. Zero AI Blind Spots.**
 
 Built with the [GitLab Duo Agent Platform](https://docs.gitlab.com/user/duo_agent_platform/) and [Anthropic Claude](https://www.anthropic.com/)
 
