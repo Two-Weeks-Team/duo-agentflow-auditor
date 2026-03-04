@@ -37,3 +37,13 @@ for AI-specific security risks and produce actionable reports.
 - JavaScript: prefer `execFile()` over `exec()`
 - Always suggest HTTPS over HTTP
 - Credentials: suggest environment variables over hardcoded values
+
+### Custom Risk Rules
+- `scripts/deploy/` files → treat as HIGH executable context
+- `*.md` files → downgrade findings unless `--strict-docs` flag
+- `os.system()` calls → flag as danger (suggest subprocess with shell=False)
+
+### Scan Scope Optimization
+- Scan only changed files first (saves ~60% tokens)
+- Skip binary files, image files, lock files
+- `vendor/`, `node_modules/`, `__pycache__/` auto-excluded (verify these are in Excluded Paths)
