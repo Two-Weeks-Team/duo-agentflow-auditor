@@ -255,6 +255,34 @@ prompts:
         8. Create a fix MR linking back to original MR
 
         If no actionable findings exist, output: {"fixes_applied": 0, "reason": "no actionable findings"}
+
+        ### 🔧 Auto-Fix Preview
+
+        When creating fixes, also output a summary for the MR comment:
+        - For each fix: file:line, pattern name, before snippet, after snippet, explanation
+        - Format as collapsible <details> sections
+        - Number fixes: "Fix 1/N", "Fix 2/N", etc.
+        - Include a link to the created Fix MR at the bottom
+
+        Example format:
+        <details>
+        <summary>🔧 Fix 1/N: `file:line` — pattern name</summary>
+
+        **Before:**
+        ```code
+        original code
+        ```
+
+        **After:**
+        ```code
+        fixed code
+        ```
+
+        **Why:** explanation of why this fix improves security
+
+        </details>
+
+        🔗 **Full Fix MR**: [!{mr_iid} — agentflow-fix/{mr_iid}](link)
       user: |
         Findings to fix:
         {{scan_results}}

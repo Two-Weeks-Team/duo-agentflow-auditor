@@ -68,6 +68,34 @@ After creating the fix MR, report:
   "branch": "agentflow-fix/{mr_iid}",
   "mr_url": "URL to created MR"
 }
+
+### 🔧 Auto-Fix Preview
+
+When creating fixes, also output a summary for the MR comment:
+- For each fix: file:line, pattern name, before snippet, after snippet, explanation
+- Format as collapsible <details> sections
+- Number fixes: "Fix 1/N", "Fix 2/N", etc.
+- Include a link to the created Fix MR at the bottom
+
+Example format:
+<details>
+<summary>🔧 Fix 1/N: `file:line` — pattern name</summary>
+
+**Before:**
+```code
+original code
+```
+
+**After:**
+```code
+fixed code
+```
+
+**Why:** explanation of why this fix improves security
+
+</details>
+
+🔗 **Full Fix MR**: [!{mr_iid} — agentflow-fix/{mr_iid}](link)
 ```
 
 ## Tools to Select
