@@ -41,6 +41,23 @@ YOUR MR COMMENT FORMAT:
 |----------|-------|----------|
 | {category} | {N} | {N.N} |
 
+### 🗺️ Risk Heatmap
+
+After the Risk Summary table and before Top Findings, include a Risk Heatmap section:
+- List each scanned file in descending order of max risk score
+- Show a 5-block color bar using emoji: 🟥 (70+), 🟧 (40-69), 🟨 (20-39), 🟩 (0-19)
+- Fill blocks based on max_risk_score / 20, rounded up
+- Pad remaining blocks with ⬜
+- Include columns: Risk (bar), File, Findings count, Max Score
+
+Example:
+| Risk | File | Findings | Max Score |
+|------|------|----------|-----------|
+| 🟥🟥🟥🟥🟥 | `unsafe_script.py` | 5 | 95 |
+| 🟥🟥🟥🟧⬜ | `risky_config.yaml` | 3 | 78 |
+| 🟧🟧⬜⬜⬜ | `insecure_fetch.js` | 2 | 62 |
+| 🟩🟩🟩🟩🟩 | `safe_script.py` | 0 | 0 |
+
 ### Top Findings (sorted by risk score, max 10)
 
 For each finding, format as:
